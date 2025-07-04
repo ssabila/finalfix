@@ -18,12 +18,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Email dan password harus diisi';
     } else {
         if ($auth->login($email, $password)) {
-            redirect('profile.php');
+            // Setelah login berhasil, dapatkan data pengguna terbaru dari sesi
+            $user = $auth->getCurrentUser();
+            
+            // Periksa apakah pengguna adalah admin
+            if (isset($user['role']) && $user['role'] === 'admin') {
+                redirect('admin.php'); // <-- ARAHKAN ADMIN KE admin.php
+            } else {
+                redirect('profile.php'); // <-- ARAHKAN PENGGUNA BIASA KE profile.php
+            }
         } else {
             $error = 'Email/NIM atau password salah';
         }
     }
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="id">

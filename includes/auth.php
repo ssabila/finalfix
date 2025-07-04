@@ -17,17 +17,18 @@ class Auth {
         $user = $stmt->fetch();
         
         if ($user && password_verify($password, $user['password'])) {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_data'] = [
-                'id' => $user['id'],
-                'nim' => $user['nim'],
-                'first_name' => $user['first_name'],
-                'last_name' => $user['last_name'],
-                'email' => $user['email'],
-                'phone' => $user['phone']
-            ];
-            return true;
-        }
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user_data'] = [
+            'id' => $user['id'],
+            'nim' => $user['nim'],
+            'first_name' => $user['first_name'],
+            'last_name' => $user['last_name'],
+            'email' => $user['email'],
+            'phone' => $user['phone'],
+            'role' => $user['role'] // <-- TAMBAHKAN BARIS INI
+        ];
+        return true;
+}
         return false;
     }
     
