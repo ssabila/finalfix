@@ -1,341 +1,170 @@
-// Profile page functionality
-document.addEventListener("DOMContentLoaded", () => {
-  // Initialize profile page
-  init()
-})
+// ================================================================
+// FUNGSI GLOBAL untuk Halaman Profil
+// Didefinisikan di luar agar bisa diakses oleh atribut onclick di PHP.
+// ================================================================
 
-function init() {
-  setupEventListeners()
-  setupTabs()
-}
-
-function setupEventListeners() {
-  // Modal controls
-  const closeModalBtns = document.querySelectorAll(".close-modal")
-  closeModalBtns.forEach((btn) => {
-    btn.addEventListener("click", closeModals)
-  })
-
-  // Close modal when clicking outside
-  window.addEventListener("click", (e) => {
-    if (e.target.classList.contains("modal")) {
-      closeModals()
-    }
-  })
-}
-
-function setupTabs() {
-  const tabBtns = document.querySelectorAll(".tab-btn")
-  const tabContents = document.querySelectorAll(".tab-content")
-
-  tabBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const targetTab = btn.dataset.tab
-
-      // Update active tab button
-      tabBtns.forEach((b) => b.classList.remove("active"))
-      btn.classList.add("active")
-
-      // Update active tab content
-      tabContents.forEach((content) => {
-        content.classList.remove("active")
-        if (content.id === `${targetTab}-tab`) {
-          content.classList.add("active")
-        }
-      })
-    })
-  })
-}
-
-// Avatar Upload Functions
-function openAvatarModal() {
-  const modal = document.getElementById("avatar-modal")
-  if (modal) {
-    // Reset form and preview
-    const form = modal.querySelector("form")
-    if (form) {
-      form.reset()
-    }
-    
-    // Hide new preview and show placeholder
-    const newPreview = document.getElementById("new-avatar-preview")
-    const placeholder = document.getElementById("no-preview-placeholder")
-    const saveBtn = document.getElementById("save-avatar-btn")
-    
-    if (newPreview) newPreview.style.display = "none"
-    if (placeholder) placeholder.style.display = "flex"
-    if (saveBtn) saveBtn.disabled = true
-    
-    modal.classList.add("active")
-  }
-}
-
-function previewAvatar(input) {
-  const newPreview = document.getElementById("new-avatar-preview")
-  const newAvatarImg = document.getElementById("new-avatar-img")
-  const placeholder = document.getElementById("no-preview-placeholder")
-  const saveBtn = document.getElementById("save-avatar-btn")
-  
-  if (input.files && input.files[0]) {
-    const file = input.files[0]
-    
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
-    if (!validTypes.includes(file.type)) {
-      alert('Hanya file gambar (JPG, PNG, GIF) yang diperbolehkan!')
-      input.value = ''
-      return
-    }
-    
-    // Validate file size (max 2MB)
-    const maxSize = 2 * 1024 * 1024 // 2MB
-    if (file.size > maxSize) {
-      alert('Ukuran file terlalu besar! Maksimal 2MB untuk foto profil.')
-      input.value = ''
-      return
-    }
-    
-    // Preview the image
-    const reader = new FileReader()
-    reader.onload = function(e) {
-      if (newAvatarImg) {
-        newAvatarImg.src = e.target.result
-      }
-      
-      if (newPreview) {
-        newPreview.style.display = "block"
-        newPreview.classList.add("avatar-upload-success")
-      }
-      
-      if (placeholder) {
-        placeholder.style.display = "none"
-      }
-      
-      if (saveBtn) {
-        saveBtn.disabled = false
-      }
-      
-      // Add validation feedback
-      showValidationMessage("Foto terlihat bagus! Klik 'Simpan Foto' untuk menggunakan foto ini.", "success")
-    }
-    
-    reader.onerror = function() {
-      alert('Terjadi kesalahan saat membaca file.')
-      input.value = ''
-    }
-    
-    reader.readAsDataURL(file)
-  } else {
-    // Reset preview if no file selected
-    if (newPreview) newPreview.style.display = "none"
-    if (placeholder) placeholder.style.display = "flex"
-    if (saveBtn) saveBtn.disabled = true
-  }
-}
-
-function showValidationMessage(message, type) {
-  // Remove existing validation messages
-  const existingMessages = document.querySelectorAll('.validation-message')
-  existingMessages.forEach(msg => msg.remove())
-  
-  // Create new validation message
-  const messageEl = document.createElement('div')
-  messageEl.className = `validation-message validation-${type}`
-  messageEl.innerHTML = `
-    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-    <span>${message}</span>
-  `
-  
-  // Add styles
-  messageEl.style.cssText = `
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem;
-    margin: 1rem 0;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    background: ${type === 'success' ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)'};
-    color: ${type === 'success' ? '#2ecc71' : '#e74c3c'};
-    border: 1px solid ${type === 'success' ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)'};
-    animation: slideIn 0.3s ease;
-  `
-  
-  // Insert after avatar upload section
-  const avatarSection = document.querySelector('.avatar-upload-section')
-  if (avatarSection) {
-    avatarSection.parentNode.insertBefore(messageEl, avatarSection.nextSibling)
-  }
-  
-  // Auto remove after 5 seconds
-  setTimeout(() => {
-    if (messageEl.parentNode) {
-      messageEl.remove()
-    }
-  }, 5000)
-}
-
-// Modal functions
 function openModal(modalId) {
-  const modal = document.getElementById(modalId)
+  const modal = document.getElementById(modalId);
   if (modal) {
-    modal.classList.add("active")
+    modal.style.display = 'flex';
   }
 }
 
 function closeModal(modalId) {
-  const modal = document.getElementById(modalId)
+  const modal = document.getElementById(modalId);
   if (modal) {
-    modal.classList.remove("active")
-    
-    // Reset form if it's the avatar modal
-    if (modalId === 'avatar-modal') {
-      const form = modal.querySelector('form')
-      if (form) {
-        form.reset()
-      }
-      
-      // Reset preview state
-      const newPreview = document.getElementById("new-avatar-preview")
-      const placeholder = document.getElementById("no-preview-placeholder")
-      const saveBtn = document.getElementById("save-avatar-btn")
-      
-      if (newPreview) newPreview.style.display = "none"
-      if (placeholder) placeholder.style.display = "flex"
-      if (saveBtn) saveBtn.disabled = true
-      
-      // Remove validation messages
-      const validationMessages = document.querySelectorAll('.validation-message')
-      validationMessages.forEach(msg => msg.remove())
+    modal.style.display = 'none';
+  }
+}
+
+function openAvatarModal() {
+    openModal('avatar-modal');
+}
+
+function editItem(id, type) {
+  const itemElement = document.querySelector(`.profile-item[data-id='${id}'][data-type='${type}']`);
+  if (!itemElement) return;
+
+  const dataScript = itemElement.querySelector('.item-edit-data');
+  if (!dataScript) {
+    console.error('Data untuk edit tidak ditemukan!');
+    return;
+  }
+  const itemData = JSON.parse(dataScript.textContent);
+  const modalId = `edit-${type}-modal`;
+  const modal = document.getElementById(modalId);
+
+  if (!modal) {
+    console.error(`Modal dengan ID ${modalId} tidak ditemukan!`);
+    return;
+  }
+
+  // Isi form dengan data yang ada
+  modal.querySelector('input[name="item_id"]').value = itemData.id;
+
+  if (type === 'lost-found') {
+    modal.querySelector('#edit_lf_type').value = itemData.type;
+    modal.querySelector('#edit_lf_title').value = itemData.title;
+    modal.querySelector('#edit_lf_category_id').value = itemData.category_id;
+    modal.querySelector('#edit_lf_description').value = itemData.description;
+    modal.querySelector('#edit_lf_location').value = itemData.location;
+    modal.querySelector('#edit_lf_date_occurred').value = itemData.date_occurred;
+    const currentImageContainer = modal.querySelector('#edit-lf-current-image');
+    const currentImage = modal.querySelector('#edit-lf-current-img');
+    if(itemData.image && currentImage) {
+      currentImage.src = itemData.image;
+      currentImageContainer.style.display = 'block';
+    } else if (currentImageContainer) {
+      currentImageContainer.style.display = 'none';
+    }
+  } else if (type === 'activity') {
+    modal.querySelector('#edit_act_title').value = itemData.title;
+    modal.querySelector('#edit_act_category_id').value = itemData.category_id;
+    modal.querySelector('#edit_act_description').value = itemData.description;
+    modal.querySelector('#edit_act_event_date').value = itemData.event_date;
+    modal.querySelector('#edit_act_event_time').value = itemData.event_time;
+    modal.querySelector('#edit_act_location').value = itemData.location;
+    modal.querySelector('#edit_act_organizer').value = itemData.organizer;
+    const currentImageContainer = modal.querySelector('#edit-act-current-image');
+    const currentImage = modal.querySelector('#edit-act-current-img');
+    if(itemData.image && currentImage) {
+      currentImage.src = itemData.image;
+      currentImageContainer.style.display = 'block';
+    } else if (currentImageContainer) {
+      currentImageContainer.style.display = 'none';
     }
   }
+
+  openModal(modalId);
 }
 
-function closeModals() {
-  const modals = document.querySelectorAll(".modal")
-  modals.forEach((modal) => {
-    modal.classList.remove("active")
-  })
-  
-  // Reset avatar modal specifically
-  const avatarModal = document.getElementById('avatar-modal')
-  if (avatarModal) {
-    closeModal('avatar-modal')
-  }
+function deleteItem(id, type, title) {
+  const modal = document.getElementById('delete-modal');
+  if (!modal) return;
+
+  modal.querySelector('#delete-item-title').textContent = title;
+
+  const form = modal.querySelector('#delete-form');
+  form.querySelector('#delete-item-id').value = id;
+  const actionInput = form.querySelector('#delete-action-type');
+  actionInput.name = `delete_${type}`;
+
+  openModal('delete-modal');
 }
 
-// Image preview functions (for lost & found and activities)
+function confirmDelete() {
+    const form = document.getElementById('delete-form');
+    if(form) {
+        form.submit();
+    }
+}
+
 function previewImage(input, previewId) {
-  if (input.files && input.files[0]) {
-    const reader = new FileReader()
-    reader.onload = function(e) {
-      const imgElement = document.querySelector(`#${previewId} img`)
-      if (imgElement) {
-        imgElement.src = e.target.result
-        document.getElementById(previewId).style.display = 'block'
-      }
+    const previewContainer = document.getElementById(previewId);
+    if (!previewContainer) return;
+
+    const previewImg = previewContainer.querySelector('img');
+    const file = input.files[0];
+
+    if (file && previewImg) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            previewImg.src = e.target.result;
+            previewContainer.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
     }
-    reader.readAsDataURL(input.files[0])
-  }
 }
 
 function removeImage(inputId, previewId) {
-  const input = document.getElementById(inputId)
-  const preview = document.getElementById(previewId)
-  
-  if (input) input.value = ''
-  if (preview) preview.style.display = 'none'
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    if (input) input.value = '';
+    if (preview) preview.style.display = 'none';
 }
 
-// Enhanced avatar upload with loading state
-function handleAvatarUpload(form) {
-  const submitBtn = form.querySelector('button[type="submit"]')
-  const currentAvatar = document.getElementById('current-avatar')
-  
-  if (submitBtn) {
-    // Show loading state
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...'
-    submitBtn.disabled = true
-    
-    // Add loading class to current avatar
-    if (currentAvatar) {
-      currentAvatar.classList.add('avatar-uploading')
+function previewAvatar(input) {
+    const saveBtn = document.getElementById('save-avatar-btn');
+    const newPreviewImg = document.getElementById('new-avatar-img');
+    const newPreviewContainer = document.getElementById('new-avatar-preview');
+    const noPreviewPlaceholder = document.getElementById('no-preview-placeholder');
+
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            if (newPreviewImg) newPreviewImg.src = e.target.result;
+            if (newPreviewContainer) newPreviewContainer.style.display = 'block';
+            if (noPreviewPlaceholder) noPreviewPlaceholder.style.display = 'none';
+            if(saveBtn) saveBtn.disabled = false;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        if(saveBtn) saveBtn.disabled = true;
     }
-  }
-  
-  // Form will submit naturally, PHP will handle the upload
-  return true
 }
 
-// Add form submit handler for avatar form
-document.addEventListener('DOMContentLoaded', function() {
-  const avatarForm = document.querySelector('#avatar-modal form')
-  if (avatarForm) {
-    avatarForm.addEventListener('submit', function(e) {
-      // Let the form submit naturally, but add loading state
-      handleAvatarUpload(this)
-    })
-  }
-})
+// ================================================================
+// Inisialisasi dan event listener yang tidak dipanggil via onclick
+// Boleh tetap di dalam DOMContentLoaded
+// ================================================================
+document.addEventListener("DOMContentLoaded", () => {
+  // Setup untuk tab switching
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
 
-// Utility function to update avatar display after successful upload
-function updateAvatarDisplay(newAvatarUrl) {
-  const currentAvatar = document.getElementById('current-avatar')
-  const currentAvatarPreview = document.getElementById('current-avatar-preview')
-  
-  if (currentAvatar) {
-    currentAvatar.src = newAvatarUrl
-    currentAvatar.classList.remove('avatar-uploading')
-  }
-  
-  if (currentAvatarPreview) {
-    currentAvatarPreview.innerHTML = `<img src="${newAvatarUrl}" alt="Current Avatar">`
-  }
-}
+  tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const tabId = button.dataset.tab;
 
-// Enhanced error handling for avatar upload
-function handleAvatarError(errorMessage) {
-  showValidationMessage(errorMessage, 'error')
-  
-  // Reset button state
-  const saveBtn = document.getElementById("save-avatar-btn")
-  if (saveBtn) {
-    saveBtn.innerHTML = '<i class="fas fa-save"></i> Simpan Foto'
-    saveBtn.disabled = false 
-  }
-  
-  // Remove loading state from current avatar
-  const currentAvatar = document.getElementById('current-avatar')
-  if (currentAvatar) {
-    currentAvatar.classList.remove('avatar-uploading')
-  }
-}
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      tabContents.forEach(content => content.classList.remove('active'));
 
-// Global functions for backward compatibility
-window.openModal = openModal
-window.closeModal = closeModal
-window.previewImage = previewImage
-window.removeImage = removeImage
-window.openAvatarModal = openAvatarModal
-window.previewAvatar = previewAvatar
-
-// Add CSS animation for validation messages
-const style = document.createElement('style')
-style.textContent = `
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  .validation-message {
-    animation: slideIn 0.3s ease;
-  }
-`
-document.head.appendChild(style)
+      button.classList.add('active');
+      const activeContent = document.getElementById(`${tabId}-tab`);
+      if (activeContent) {
+        activeContent.classList.add('active');
+      }
+    });
+  });
+});
