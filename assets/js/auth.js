@@ -40,7 +40,7 @@ class AuthManager {
 
     if (isAuthenticated && this.currentUser) {
       navAuth.innerHTML = `
-                <a href="profile.php" class="btn-login">
+                <a href="profile.html" class="btn-login">
                     <i class="fas fa-user"></i>
                     ${this.currentUser.first_name}
                 </a>
@@ -51,8 +51,8 @@ class AuthManager {
             `
     } else {
       navAuth.innerHTML = `
-                <a href="login.php" class="btn-login">Masuk</a>
-                <a href="register.php" class="btn-register">Daftar</a>
+                <a href="login.html" class="btn-login">Masuk</a>
+                <a href="register.html" class="btn-register">Daftar</a>
             `
     }
   }
@@ -68,7 +68,6 @@ class AuthManager {
     const registerForm = document.getElementById("register-form")
     if (registerForm) {
       registerForm.addEventListener("submit", (e) => this.handleRegister(e))
-      this.setupEmailValidation(registerForm)
     }
 
     // Password toggle buttons
@@ -113,6 +112,7 @@ class AuthManager {
     return true
   }
 
+
   async handleLogin(e) {
     e.preventDefault()
 
@@ -145,7 +145,7 @@ class AuthManager {
 
         // Redirect to profile page after short delay
         setTimeout(() => {
-          window.location.href = "profile.php"
+          window.location.href = "profile.html"
         }, 1500)
       } else {
         this.showNotification(data.error || "Login gagal", "error")
@@ -210,7 +210,7 @@ class AuthManager {
 
         // Redirect to login page after short delay
         setTimeout(() => {
-          window.location.href = "login.php"
+          window.location.href = "login.html"
         }, 2000)
       } else {
         this.showNotification(data.error || "Registrasi gagal", "error")
@@ -237,7 +237,7 @@ class AuthManager {
 
         // Redirect to home page
         setTimeout(() => {
-          window.location.href = "index.php"
+          window.location.href = "index.html"
         }, 1000)
       } else {
         this.showNotification("Logout gagal", "error")
@@ -266,38 +266,99 @@ class AuthManager {
 
   showNotification(message, type = "info") {
     // Remove existing notifications
-    const existing = document.querySelector(".notification")
-    if (existing) {
-      existing.remove()
-    }
+    const existingNotifications = document.querySelectorAll(".notification")
+    existingNotifications.forEach((notification) => notification.remove())
 
+    // Create notification element
     const notification = document.createElement("div")
     notification.className = `notification notification-${type}`
+
+    const iconMap = {
+      success: "fas fa-check-circle",
+      error: "fas fa-exclamation-circle",
+      warning: "fas fa-exclamation-triangle",
+      info: "fas fa-info-circle",
+    }
+
     notification.innerHTML = `
             <div class="notification-content">
-                <i class="fas ${type === "success" ? "fa-check-circle" : type === "error" ? "fa-exclamation-circle" : "fa-info-circle"}"></i>
+                <i class="${iconMap[type]}"></i>
                 <span>${message}</span>
+                <button class="notification-close">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
         `
 
+    // Add to page
     document.body.appendChild(notification)
 
-    // Show notification
+    // Auto remove after 5 seconds
     setTimeout(() => {
-      notification.classList.add("show")
-    }, 100)
-
-    // Hide notification after 5 seconds
-    setTimeout(() => {
-      notification.classList.remove("show")
-      setTimeout(() => {
+      if (notification.parentElement) {
         notification.remove()
-      }, 300)
+      }
     }, 5000)
+
+    // Close button functionality
+    const closeBtn = notification.querySelector(".notification-close")
+    closeBtn.addEventListener("click", () => {
+      notification.remove()
+    })
+  }
+
+  // Helper methods for other scripts
+  isAuthenticated() {
+    return this.currentUser !== null
+  }
+
+  getCurrentUser() {
+    return this.currentUser
+  }
+
+  requireAuth() {
+    if (!this.isAuthenticated()) {
+      this.showNotification("Anda harus login terlebih dahulu", "warning")
+      setTimeout(() => {
+        window.location.href = "login.html"
+      }, 2000)
+      return false
+    }
+    return true
+  }
+
+  async authenticatedFetch(url, options = {}) {
+    const defaultOptions = {
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    }
+
+    const response = await fetch(url, { ...defaultOptions, ...options })
+
+    if (response.status === 401) {
+      this.currentUser = null
+      this.updateNavigation(false)
+      this.showNotification("Sesi Anda telah berakhir. Silakan login kembali.", "warning")
+      setTimeout(() => {
+        window.location.href = "login.html"
+      }, 2000)
+      throw new Error("Authentication required")
+    }
+
+    return response
   }
 }
 
-// Initialize auth manager when DOM is loaded
-document.addEventListener("DOMContentLoaded", () => {
-  window.authManager = new AuthManager()
-})
+// Initialize auth manager
+const authManager = new AuthManager()
+
+// Global functions for backward compatibility
+window.isAuthenticated = () => authManager.isAuthenticated()
+window.getCurrentUser = () => authManager.getCurrentUser()
+window.requireAuth = () => authManager.requireAuth()
+window.authenticatedFetch = (url, options) => authManager.authenticatedFetch(url, options)
+window.showNotification = (message, type) => authManager.showNotification(message, type)
+window.logout = () => authManager.logout()

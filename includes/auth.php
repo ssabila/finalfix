@@ -19,33 +19,20 @@ class Auth {
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_data'] = [
-                'id' => $user['id'],
-                'nim' => $user['nim'],
-                'first_name' => $user['first_name'],
-                'last_name' => $user['last_name'],
-                'email' => $user['email'],
-                'phone' => $user['phone'],
-                'role' => $user['role'] // <-- TAMBAHKAN BARIS INI
+            'id' => $user['id'],
+            'nim' => $user['nim'],
+            'first_name' => $user['first_name'],
+            'last_name' => $user['last_name'],
+            'email' => $user['email'],
+            'phone' => $user['phone'],
+            'role' => $user['role'] // <-- TAMBAHKAN BARIS INI
             ];
         return true;
         }
-    return false;
+        return false;
     }
     
     public function register($data) {
-        // Validate email format
-        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            return ['error' => 'Format email tidak valid'];
-        }
-        
-        // Ekstrak domain dari email
-        $email_domain = substr(strrchr($data['email'], "@"), 1);
-        
-        // Validasi domain - hanya menerima email dengan domain @stis.ac.id atau @bps.go.id
-        if ($email_domain !== 'stis.ac.id' && $email_domain !== 'bps.go.id') {
-            return ['error' => 'Email harus berakhiran @stis.ac.id atau @bps.go.id'];
-        }
-
         // Check if email or NIM already exists
         $checkQuery = "SELECT id FROM users WHERE email = ? OR nim = ?";
         $checkStmt = $this->db->prepare($checkQuery);

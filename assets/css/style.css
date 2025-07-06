@@ -541,6 +541,16 @@ body {
   transition: var(--transition);
 }
 
+/* Icon di sebelah kiri (lock icon) */
+.input-group i.fas.fa-lock {
+  position: absolute;
+  left: 1rem;
+  color: var(--text-light);
+  z-index: 2;
+  transition: var(--transition);
+}
+
+
 .input-group input,
 .input-group select,
 .input-group textarea {
@@ -598,6 +608,33 @@ textarea {
   resize: vertical;
   min-height: 120px;
   line-height: 1.5;
+}
+
+/* Input field dengan padding yang disesuaikan */
+.input-group input[type="password"],
+.input-group input[type="text"] {
+  width: 100%;
+  padding: 1rem 3rem 1rem 2.75rem; /* Tambah padding kanan untuk toggle button */
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: var(--white);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+/* Focus state untuk input */
+.input-group input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(75, 195, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Hover state untuk input yang mengandung toggle button */
+.input-group:hover input {
+  border-color: rgba(75, 195, 255, 0.5);
 }
 
 /* File input styling */

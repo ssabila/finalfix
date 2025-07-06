@@ -97,6 +97,20 @@
   gap: 1rem;
 }
 
+/* Input field dengan padding yang disesuaikan */
+.input-group input[type="password"],
+.input-group input[type="text"] {
+  width: 100%;
+  padding: 1rem 3rem 1rem 2.75rem; /* Tambah padding kanan untuk toggle button */
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: var(--white);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
 .checkbox-container {
   display: flex;
   align-items: center;
@@ -146,18 +160,58 @@
   text-decoration: underline;
 }
 
+/* Responsive design untuk mobile */
+@media (max-width: 768px) {
+  .input-group input[type="password"],
+  .input-group input[type="text"] {
+    padding: 0.875rem 2.75rem 0.875rem 2.5rem;
+  }
+  
+  .toggle-password {
+    right: 0.75rem;
+  }
+  
+  .input-group i.fas.fa-lock {
+    left: 0.75rem;
+  }
+}
+
+/* Toggle password button */
 .toggle-password {
   position: absolute;
   right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   color: var(--text-light);
   cursor: pointer;
   transition: var(--transition);
+  z-index: 3;
+  padding: 0.25rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
 }
 
 .toggle-password:hover {
   color: var(--text-dark);
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.toggle-password:focus {
+  outline: none;
+  color: var(--primary-color);
+  background-color: rgba(75, 195, 255, 0.1);
+}
+
+/* Memastikan icon toggle password tidak terpotong */
+.toggle-password i {
+  font-size: 0.9rem;
+  pointer-events: none;
 }
 
 .auth-footer {
@@ -274,3 +328,4 @@
     font-size: 1.3rem;
   }
 }
+
