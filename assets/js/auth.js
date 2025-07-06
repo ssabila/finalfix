@@ -3,6 +3,7 @@ class AuthManager {
   constructor() {
     this.baseUrl = "api"
     this.currentUser = null
+    this.allowedDomains = ['stis.ac.id', 'bps.go.id']
     this.init()
   }
 
@@ -39,7 +40,7 @@ class AuthManager {
 
     if (isAuthenticated && this.currentUser) {
       navAuth.innerHTML = `
-                <a href="profile.html" class="btn-login">
+                <a href="profile.php" class="btn-login">
                     <i class="fas fa-user"></i>
                     ${this.currentUser.first_name}
                 </a>
@@ -50,8 +51,8 @@ class AuthManager {
             `
     } else {
       navAuth.innerHTML = `
-                <a href="login.html" class="btn-login">Masuk</a>
-                <a href="register.html" class="btn-register">Daftar</a>
+                <a href="login.php" class="btn-login">Masuk</a>
+                <a href="register.php" class="btn-register">Daftar</a>
             `
     }
   }
@@ -67,6 +68,7 @@ class AuthManager {
     const registerForm = document.getElementById("register-form")
     if (registerForm) {
       registerForm.addEventListener("submit", (e) => this.handleRegister(e))
+      this.setupEmailValidation(registerForm)
     }
 
     // Password toggle buttons
@@ -74,6 +76,41 @@ class AuthManager {
     toggleButtons.forEach((button) => {
       button.addEventListener("click", this.togglePassword)
     })
+  }
+
+  setupEmailValidation(form) {
+    const emailInput = form.querySelector('input[name="email"]')
+    if (emailInput) {
+      emailInput.addEventListener('blur', (e) => {
+        this.validateEmailDomain(e.target)
+      })
+      
+      emailInput.addEventListener('input', (e) => {
+        // Clear custom validity when user starts typing
+        e.target.setCustomValidity('')
+      })
+    }
+  }
+
+  validateEmailDomain(emailInput) {
+    const email = emailInput.value.trim()
+    if (!email) return true
+
+    const emailDomain = email.split('@')[1]
+    
+    if (!emailDomain) {
+      emailInput.setCustomValidity('Format email tidak valid')
+      return false
+    }
+
+    if (!this.allowedDomains.includes(emailDomain)) {
+      emailInput.setCustomValidity('Email harus berakhiran @stis.ac.id atau @bps.go.id')
+      emailInput.reportValidity()
+      return false
+    }
+
+    emailInput.setCustomValidity('')
+    return true
   }
 
   async handleLogin(e) {
@@ -108,7 +145,7 @@ class AuthManager {
 
         // Redirect to profile page after short delay
         setTimeout(() => {
-          window.location.href = "profile.html"
+          window.location.href = "profile.php"
         }, 1500)
       } else {
         this.showNotification(data.error || "Login gagal", "error")
@@ -128,6 +165,13 @@ class AuthManager {
     const form = e.target
     const submitBtn = form.querySelector('button[type="submit"]')
     const formData = new FormData(form)
+
+    // Validate email domain first
+    const emailInput = form.querySelector('input[name="email"]')
+    if (!this.validateEmailDomain(emailInput)) {
+      this.showNotification("Email harus berakhiran @stis.ac.id atau @bps.go.id", "error")
+      return
+    }
 
     // Validate password confirmation
     const password = formData.get("password")
@@ -166,7 +210,7 @@ class AuthManager {
 
         // Redirect to login page after short delay
         setTimeout(() => {
-          window.location.href = "login.html"
+          window.location.href = "login.php"
         }, 2000)
       } else {
         this.showNotification(data.error || "Registrasi gagal", "error")
@@ -193,7 +237,7 @@ class AuthManager {
 
         // Redirect to home page
         setTimeout(() => {
-          window.location.href = "index.html"
+          window.location.href = "index.php"
         }, 1000)
       } else {
         this.showNotification("Logout gagal", "error")
@@ -222,99 +266,38 @@ class AuthManager {
 
   showNotification(message, type = "info") {
     // Remove existing notifications
-    const existingNotifications = document.querySelectorAll(".notification")
-    existingNotifications.forEach((notification) => notification.remove())
-
-    // Create notification element
-    const notification = document.createElement("div")
-    notification.className = `notification notification-${type}`
-
-    const iconMap = {
-      success: "fas fa-check-circle",
-      error: "fas fa-exclamation-circle",
-      warning: "fas fa-exclamation-triangle",
-      info: "fas fa-info-circle",
+    const existing = document.querySelector(".notification")
+    if (existing) {
+      existing.remove()
     }
 
+    const notification = document.createElement("div")
+    notification.className = `notification notification-${type}`
     notification.innerHTML = `
             <div class="notification-content">
-                <i class="${iconMap[type]}"></i>
+                <i class="fas ${type === "success" ? "fa-check-circle" : type === "error" ? "fa-exclamation-circle" : "fa-info-circle"}"></i>
                 <span>${message}</span>
-                <button class="notification-close">
-                    <i class="fas fa-times"></i>
-                </button>
             </div>
         `
 
-    // Add to page
     document.body.appendChild(notification)
 
-    // Auto remove after 5 seconds
+    // Show notification
     setTimeout(() => {
-      if (notification.parentElement) {
+      notification.classList.add("show")
+    }, 100)
+
+    // Hide notification after 5 seconds
+    setTimeout(() => {
+      notification.classList.remove("show")
+      setTimeout(() => {
         notification.remove()
-      }
+      }, 300)
     }, 5000)
-
-    // Close button functionality
-    const closeBtn = notification.querySelector(".notification-close")
-    closeBtn.addEventListener("click", () => {
-      notification.remove()
-    })
-  }
-
-  // Helper methods for other scripts
-  isAuthenticated() {
-    return this.currentUser !== null
-  }
-
-  getCurrentUser() {
-    return this.currentUser
-  }
-
-  requireAuth() {
-    if (!this.isAuthenticated()) {
-      this.showNotification("Anda harus login terlebih dahulu", "warning")
-      setTimeout(() => {
-        window.location.href = "login.html"
-      }, 2000)
-      return false
-    }
-    return true
-  }
-
-  async authenticatedFetch(url, options = {}) {
-    const defaultOptions = {
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
-    }
-
-    const response = await fetch(url, { ...defaultOptions, ...options })
-
-    if (response.status === 401) {
-      this.currentUser = null
-      this.updateNavigation(false)
-      this.showNotification("Sesi Anda telah berakhir. Silakan login kembali.", "warning")
-      setTimeout(() => {
-        window.location.href = "login.html"
-      }, 2000)
-      throw new Error("Authentication required")
-    }
-
-    return response
   }
 }
 
-// Initialize auth manager
-const authManager = new AuthManager()
-
-// Global functions for backward compatibility
-window.isAuthenticated = () => authManager.isAuthenticated()
-window.getCurrentUser = () => authManager.getCurrentUser()
-window.requireAuth = () => authManager.requireAuth()
-window.authenticatedFetch = (url, options) => authManager.authenticatedFetch(url, options)
-window.showNotification = (message, type) => authManager.showNotification(message, type)
-window.logout = () => authManager.logout()
+// Initialize auth manager when DOM is loaded
+document.addEventListener("DOMContentLoaded", () => {
+  window.authManager = new AuthManager()
+})

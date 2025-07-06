@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label for="email">Email</label>
                     <div class="input-group">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" id="email" name="email" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" required>
+                        <input type="email" id="email" name="email" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"placeholder="contoh@stis.ac.id atau @bps.go.id" required>
                     </div>
                 </div>
                 
@@ -179,6 +179,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     icon.classList.add('fa-eye');
                 }
             });
+        });
+
+        // Email domain validation (client-side)
+        document.getElementById('email').addEventListener('blur', function() {
+            const email = this.value;
+            const emailDomain = email.split('@')[1];
+            
+            if (email && !email.includes('@')) {
+                return;
+            }
+            
+            if (emailDomain && emailDomain !== 'stis.ac.id' && emailDomain !== 'bps.go.id') {
+                this.setCustomValidity('Email harus berakhiran @stis.ac.id atau @bps.go.id');
+                this.reportValidity();
+            } else {
+                this.setCustomValidity('');
+            }
         });
     </script>
 </body>
