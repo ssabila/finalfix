@@ -488,7 +488,6 @@ $resolvedItems = count(array_filter($userLostFound, function($item) {
     <script src="assets/js/profile.js"></script>
 </head>
 <body>
-    <script src="assets/js/profile.js"></script>
     <!-- Navigation -->
     <?php include('assets/php/navbar.php'); ?>
 

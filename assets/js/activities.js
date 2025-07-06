@@ -150,8 +150,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const activitiesHTML = activities.map((activity) => createActivityCard(activity)).join("")
       activitiesContainer.innerHTML = activitiesHTML
 
+      // Staggered animation
+      const activityCards = activitiesContainer.querySelectorAll(".activity-item");
+      activityCards.forEach((card, index) => {
+          card.style.animationDelay = `${index * 80}ms`;
+      });
+
       // Add event listeners to new cards
-      const activityCards = activitiesContainer.querySelectorAll(".activity-item")
       activityCards.forEach((card) => setupCardEvents(card))
     } catch (error) {
       console.error("Error displaying activities:", error)

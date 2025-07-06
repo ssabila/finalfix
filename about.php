@@ -17,10 +17,8 @@ $user = $auth->getCurrentUser();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <!-- Navigation -->
     <?php include('assets/php/navbar.php'); ?>
 
-    <!-- Hero Section -->
     <section class="about-hero">
         <div class="container">
             <div class="hero-content">
@@ -30,8 +28,7 @@ $user = $auth->getCurrentUser();
         </div>
     </section>
 
-    <!-- About Content -->
-    <section class="about-content">
+    <section class="about-content animate-on-scroll">
         <div class="container">
             <div class="content-grid">
                 <div class="content-text">
@@ -50,8 +47,7 @@ $user = $auth->getCurrentUser();
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section class="features-detail">
+    <section class="features-detail animate-on-scroll">
         <div class="container">
             <h2>Fitur Utama</h2>
             <div class="features-grid">
@@ -103,8 +99,7 @@ $user = $auth->getCurrentUser();
         </div>
     </section>
 
-    <!-- Mission Section -->
-    <section class="mission">
+    <section class="mission animate-on-scroll">
         <div class="container">
             <h2>Misi Kami</h2>
             <p class="section-subtitle">E-Statmad hadir dengan komitmen untuk menciptakan ekosistem digital yang mendukung kehidupan kampus</p>
@@ -173,8 +168,7 @@ $user = $auth->getCurrentUser();
         </div>
     </section>
 
-    <!-- Contact Section -->
-    <section class="contact">
+    <section class="contact animate-on-scroll">
         <div class="container">
             <h2>Hubungi Kami</h2>
             <p class="section-subtitle">Punya pertanyaan, saran, atau butuh bantuan? Tim E-Statmad siap membantu Anda</p>
@@ -267,7 +261,6 @@ $user = $auth->getCurrentUser();
         </div>
     </section>
 
-    <!-- Footer -->
     <?php include('assets/php/footer.php'); ?>
 
     <script src="assets/js/main.js"></script>

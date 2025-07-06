@@ -148,8 +148,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const itemsHTML = items.map((item) => createItemCard(item)).join("")
       lostFoundContainer.innerHTML = itemsHTML
 
+      // Staggered animation
+      const itemCards = lostFoundContainer.querySelectorAll(".lost-found-item");
+      itemCards.forEach((card, index) => {
+          card.style.animationDelay = `${index * 80}ms`; // Stagger the animation
+      });
+      
       // Add event listeners to new cards
-      const itemCards = lostFoundContainer.querySelectorAll(".lost-found-item")
       itemCards.forEach((card) => setupCardEvents(card))
     } catch (error) {
       console.error("Error displaying items:", error)

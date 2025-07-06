@@ -66,6 +66,13 @@ function getItemIcon($categoryName, $type) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+    <div class="preloader">
+        <div class="preloader-container">
+            <img src="assets/images/logo.png" alt="E-Statmad Logo" class="preloader-logo">
+            <div class="preloader-spinner"></div>
+        </div>
+    </div>
+    
     <!-- Navigation -->
     <?php include('assets/php/navbar.php'); ?>
 

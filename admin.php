@@ -121,6 +121,13 @@ $stats = $statsStmt->fetch();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+    <div class="preloader">
+            <div class="preloader-container">
+                <img src="assets/images/logo.png" alt="E-Statmad Logo" class="preloader-logo">
+                <div class="preloader-spinner"></div>
+            </div>
+    </div>
+
     <!-- Include navigation yang sudah diupdate -->
     <?php include 'assets/php/navbar.php'; ?>
 
@@ -270,6 +277,7 @@ $stats = $statsStmt->fetch();
         </div>
     </div>
 
+    <script src="assets/js/main.js"></script>
     <script>
         function deletePost(id, type, title, author) {
             document.getElementById('deletePostId').value = id;
