@@ -3,6 +3,7 @@
   background: linear-gradient(135deg, rgba(75, 195, 255, 0.1), rgba(149, 232, 222, 0.1));
   padding: 6rem 0 2rem;
   text-align: center;
+  max-width: 1200px;
 }
 
 .page-header h1 {
@@ -27,6 +28,7 @@
 }
 
 .page-header::before{
+  max-width: 1200px;
   content: "";
   position: absolute;
   top: -50%;
@@ -49,6 +51,7 @@
   background: linear-gradient(-45deg, rgba(149, 232, 222, 0.08), rgba(75, 195, 255, 0.08));
   border-radius: 50%;
   animation: rotate 25s linear infinite reverse;
+  max-width: 1200px;
 }
 
 
