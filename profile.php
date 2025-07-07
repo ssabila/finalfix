@@ -150,73 +150,136 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_activity'])) {
     }
 }
 
-// Handle delete lost & found item
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_lost_found'])) {
-    $itemId = $_POST['item_id'] ?? 0;
+// Improved delete handling with better error checking and logging
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
-    if ($itemId > 0) {
-        // Check if item belongs to current user
-        $checkQuery = "SELECT * FROM lost_found_items WHERE id = ? AND user_id = ?";
-        $checkStmt = $db->prepare($checkQuery);
-        $checkStmt->execute([$itemId, $user['id']]);
-        $item = $checkStmt->fetch();
+    // Handle delete lost & found item
+    if (isset($_POST['delete_lost_found'])) {
+        $itemId = intval($_POST['item_id'] ?? 0);
         
-        if ($item) {
-            // Delete image file if exists
-            if (!empty($item['image']) && file_exists($item['image'])) {
-                unlink($item['image']);
-            }
-            
-            // Delete from database
-            $deleteQuery = "DELETE FROM lost_found_items WHERE id = ? AND user_id = ?";
-            $deleteStmt = $db->prepare($deleteQuery);
-            
-            if ($deleteStmt->execute([$itemId, $user['id']])) {
-                header('Location: profile.php?deleted_lf=1');
-                exit;
-            } else {
-                $message = 'Gagal menghapus laporan';
+        if ($itemId > 0) {
+            try {
+                // Check if item belongs to current user
+                $checkQuery = "SELECT * FROM lost_found_items WHERE id = ? AND user_id = ?";
+                $checkStmt = $db->prepare($checkQuery);
+                $checkStmt->execute([$itemId, $user['id']]);
+                $item = $checkStmt->fetch();
+                
+                if ($item) {
+                    // Begin transaction
+                    $db->beginTransaction();
+                    
+                    // Delete image file if exists
+                    if (!empty($item['image']) && file_exists($item['image'])) {
+                        unlink($item['image']);
+                    }
+                    
+                    // Delete from database
+                    $deleteQuery = "DELETE FROM lost_found_items WHERE id = ? AND user_id = ?";
+                    $deleteStmt = $db->prepare($deleteQuery);
+                    
+                    if ($deleteStmt->execute([$itemId, $user['id']])) {
+                        $db->commit();
+                        $_SESSION['success_message'] = "Laporan '{$item['title']}' berhasil dihapus!";
+                        header('Location: profile.php?deleted_lf=1');
+                        exit;
+                    } else {
+                        $db->rollback();
+                        $message = 'Gagal menghapus laporan dari database';
+                        $messageType = 'error';
+                    }
+                } else {
+                    $message = 'Laporan tidak ditemukan atau Anda tidak memiliki akses';
+                    $messageType = 'error';
+                }
+            } catch (Exception $e) {
+                if ($db->inTransaction()) {
+                    $db->rollback();
+                }
+                error_log("Error deleting lost-found item: " . $e->getMessage());
+                $message = 'Terjadi kesalahan saat menghapus laporan: ' . $e->getMessage();
                 $messageType = 'error';
             }
         } else {
-            $message = 'Laporan tidak ditemukan atau Anda tidak memiliki akses';
+            $message = 'ID laporan tidak valid';
+            $messageType = 'error';
+        }
+    }
+    
+    // Handle delete activity
+    if (isset($_POST['delete_activity'])) {
+        $itemId = intval($_POST['item_id'] ?? 0);
+        
+        if ($itemId > 0) {
+            try {
+                // Check if activity belongs to current user
+                $checkQuery = "SELECT * FROM activities WHERE id = ? AND user_id = ?";
+                $checkStmt = $db->prepare($checkQuery);
+                $checkStmt->execute([$itemId, $user['id']]);
+                $activity = $checkStmt->fetch();
+                
+                if ($activity) {
+                    // Begin transaction
+                    $db->beginTransaction();
+                    
+                    // Delete image file if exists
+                    if (!empty($activity['image']) && file_exists($activity['image'])) {
+                        unlink($activity['image']);
+                    }
+                    
+                    // Delete from database
+                    $deleteQuery = "DELETE FROM activities WHERE id = ? AND user_id = ?";
+                    $deleteStmt = $db->prepare($deleteQuery);
+                    
+                    if ($deleteStmt->execute([$itemId, $user['id']])) {
+                        $db->commit();
+                        $_SESSION['success_message'] = "Kegiatan '{$activity['title']}' berhasil dihapus!";
+                        header('Location: profile.php?deleted_activity=1');
+                        exit;
+                    } else {
+                        $db->rollback();
+                        $message = 'Gagal menghapus kegiatan dari database';
+                        $messageType = 'error';
+                    }
+                } else {
+                    $message = 'Kegiatan tidak ditemukan atau Anda tidak memiliki akses';
+                    $messageType = 'error';
+                }
+            } catch (Exception $e) {
+                if ($db->inTransaction()) {
+                    $db->rollback();
+                }
+                error_log("Error deleting activity: " . $e->getMessage());
+                $message = 'Terjadi kesalahan saat menghapus kegiatan: ' . $e->getMessage();
+                $messageType = 'error';
+            }
+        } else {
+            $message = 'ID kegiatan tidak valid';
             $messageType = 'error';
         }
     }
 }
 
-// Handle delete activity
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_activity'])) {
-    $itemId = $_POST['item_id'] ?? 0;
-    
-    if ($itemId > 0) {
-        // Check if activity belongs to current user
-        $checkQuery = "SELECT * FROM activities WHERE id = ? AND user_id = ?";
-        $checkStmt = $db->prepare($checkQuery);
-        $checkStmt->execute([$itemId, $user['id']]);
-        $activity = $checkStmt->fetch();
-        
-        if ($activity) {
-            // Delete image file if exists
-            if (!empty($activity['image']) && file_exists($activity['image'])) {
-                unlink($activity['image']);
-            }
-            
-            // Delete from database
-            $deleteQuery = "DELETE FROM activities WHERE id = ? AND user_id = ?";
-            $deleteStmt = $db->prepare($deleteQuery);
-            
-            if ($deleteStmt->execute([$itemId, $user['id']])) {
-                header('Location: profile.php?deleted_activity=1');
-                exit;
-            } else {
-                $message = 'Gagal menghapus kegiatan';
-                $messageType = 'error';
-            }
-        } else {
-            $message = 'Kegiatan tidak ditemukan atau Anda tidak memiliki akses';
-            $messageType = 'error';
-        }
+// Handle success messages from redirects
+if (isset($_GET['deleted_lf']) && $_GET['deleted_lf'] == '1') {
+    if (isset($_SESSION['success_message'])) {
+        $message = $_SESSION['success_message'];
+        $messageType = 'success';
+        unset($_SESSION['success_message']);
+    } else {
+        $message = 'Laporan berhasil dihapus!';
+        $messageType = 'success';
+    }
+}
+
+if (isset($_GET['deleted_activity']) && $_GET['deleted_activity'] == '1') {
+    if (isset($_SESSION['success_message'])) {
+        $message = $_SESSION['success_message'];
+        $messageType = 'success';
+        unset($_SESSION['success_message']);
+    } else {
+        $message = 'Kegiatan berhasil dihapus!';
+        $messageType = 'success';
     }
 }
 
