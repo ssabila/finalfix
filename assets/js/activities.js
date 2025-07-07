@@ -385,7 +385,7 @@ function handlePhpMessages() {
     } else {
       // Fallback to alert if showNotification is not available
       const icon = type === "success" ? "✅" : "❌"
-      alert(icon + " " + text)
+      showCustomNotification(icon + " " + text)
     }
 
     // Clean up
@@ -406,7 +406,7 @@ function validateForm(form) {
     }
   })
 
-  // Validasi khusus untuk tanggal
+  // Validasi khusus untuk tanggal kegiatan
   const eventDate = form.querySelector("#event_date")
   if (eventDate && eventDate.value) {
     const selectedDate = new Date(eventDate.value)
@@ -414,7 +414,21 @@ function validateForm(form) {
     today.setHours(0, 0, 0, 0)
 
     if (selectedDate < today) {
-      showFieldError(eventDate, "Tanggal kegiatan tidak boleh di masa lalu")
+      showCustomNotification("Tanggal kegiatan tidak boleh di masa lalu!", "warning")
+      eventDate.focus()
+      isValid = false
+    }
+  }
+
+   // Validasi waktu kegiatan
+  const eventTime = form.querySelector("#event_time")
+  if (eventTime && eventTime.value && eventDate && eventDate.value) {
+    const selectedDateTime = new Date(eventDate.value + "T" + eventTime.value)
+    const now = new Date()
+
+    if (selectedDateTime < now) {
+      showCustomNotification("Waktu kegiatan tidak boleh di masa lalu!", "warning")
+      eventTime.focus()
       isValid = false
     }
   }
@@ -501,7 +515,7 @@ window.previewImage = (input) => {
     // Validate file type
     const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"]
     if (!validTypes.includes(file.type)) {
-      alert("Hanya file gambar (JPG, PNG, GIF) yang diperbolehkan!")
+      showCustomNotification("Hanya file gambar (JPG, PNG, GIF) yang diperbolehkan!")
       input.value = ""
       return
     }
@@ -509,7 +523,7 @@ window.previewImage = (input) => {
     // Validate file size (max 5MB)
     const maxSize = 5 * 1024 * 1024 // 5MB
     if (file.size > maxSize) {
-      alert("Ukuran file terlalu besar! Maksimal 5MB.")
+      showCustomNotification("Ukuran file terlalu besar! Maksimal 5MB.")
       input.value = ""
       return
     }
@@ -669,7 +683,7 @@ window.shareActivity = (title, description) => {
     navigator.clipboard
       .writeText(text)
       .then(() => {
-        alert("Link kegiatan berhasil disalin!")
+        showCustomNotification("Link kegiatan berhasil disalin!")
       })
       .catch(() => {
         // Fallback for older browsers
@@ -679,7 +693,7 @@ window.shareActivity = (title, description) => {
         textArea.select()
         document.execCommand("copy")
         document.body.removeChild(textArea)
-        alert("Link kegiatan berhasil disalin!")
+        showCustomNotification("Link kegiatan berhasil disalin!")
       })
   }
 }

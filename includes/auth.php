@@ -19,15 +19,17 @@ class Auth {
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_data'] = [
-            'id' => $user['id'],
-            'nim' => $user['nim'],
-            'first_name' => $user['first_name'],
-            'last_name' => $user['last_name'],
-            'email' => $user['email'],
-            'phone' => $user['phone'],
-            'role' => $user['role'] // <-- TAMBAHKAN BARIS INI
+                'id' => $user['id'],
+                'nim' => $user['nim'],
+                'first_name' => $user['first_name'],
+                'last_name' => $user['last_name'],
+                'email' => $user['email'],
+                'phone' => $user['phone'],
+                'role' => $user['role'],
+                // PERBAIKAN: Simpan avatar dengan path lengkap
+                'avatar' => $user['avatar']
             ];
-        return true;
+            return true;
         }
         return false;
     }
@@ -72,8 +74,35 @@ class Auth {
         return isset($_SESSION['user_id']);
     }
     
+    // PERBAIKAN: getCurrentUser() - Selalu ambil data terbaru dari database
     public function getCurrentUser() {
-        return isset($_SESSION['user_data']) ? $_SESSION['user_data'] : null;
+        if (!isset($_SESSION['user_id'])) {
+            return null;
+        }
+        
+        // Ambil data terbaru dari database untuk memastikan avatar yang benar
+        $query = "SELECT id, nim, first_name, last_name, email, phone, avatar, role FROM users WHERE id = ? AND is_active = 1";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute([$_SESSION['user_id']]);
+        $user = $stmt->fetch();
+        
+        if ($user) {
+            // Update session dengan data terbaru
+            $_SESSION['user_data'] = [
+                'id' => $user['id'],
+                'nim' => $user['nim'],
+                'first_name' => $user['first_name'],
+                'last_name' => $user['last_name'],
+                'email' => $user['email'],
+                'phone' => $user['phone'],
+                'role' => $user['role'],
+                'avatar' => $user['avatar']
+            ];
+            
+            return $_SESSION['user_data'];
+        }
+        
+        return null;
     }
     
     public function requireAuth() {
@@ -84,29 +113,29 @@ class Auth {
     }
 
     /**
- * Check if current user is admin
- */
-public function isAdmin() {
-    $user = $this->getCurrentUser();
-    return $user && isset($user['role']) && $user['role'] === 'admin';
-}
+     * Check if current user is admin
+     */
+    public function isAdmin() {
+        $user = $this->getCurrentUser();
+        return $user && isset($user['role']) && $user['role'] === 'admin';
+    }
 
-/**
- * Require admin access
- */
-public function requireAdmin() {
-    if (!$this->isLoggedIn()) {
-        header('Location: login.php?error=login_required');
-        exit;
+    /**
+     * Require admin access
+     */
+    public function requireAdmin() {
+        if (!$this->isLoggedIn()) {
+            header('Location: login.php?error=login_required');
+            exit;
+        }
+        
+        if (!$this->isAdmin()) {
+            header('Location: index.php?error=access_denied');
+            exit;
+        }
+        
+        return $this->getCurrentUser();
     }
-    
-    if (!$this->isAdmin()) {
-        header('Location: index.php?error=access_denied');
-        exit;
-    }
-    
-    return $this->getCurrentUser();
-}
 
     /**
      * Log admin activity
@@ -123,6 +152,21 @@ public function requireAdmin() {
         } catch (Exception $e) {
             error_log("Failed to log admin activity: " . $e->getMessage());
         }
+    }
+    
+    // PERBAIKAN: Fungsi helper untuk mendapatkan URL avatar
+    public function getAvatarUrl($user) {
+        if (empty($user['avatar'])) {
+            return 'assets/images/default-avatar.png';
+        }
+        
+        // Jika sudah path lengkap
+        if (strpos($user['avatar'], 'uploads/') === 0) {
+            return $user['avatar'];
+        }
+        
+        // Jika masih nama file saja (backward compatibility)
+        return 'uploads/avatars/' . $user['avatar'];
     }
 }
 

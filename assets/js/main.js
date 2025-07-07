@@ -1,6 +1,123 @@
-// ================================================================
-// Preloader Logic with Minimum Display Time
-// ================================================================
+/**
+ * Menampilkan notifikasi custom yang konsisten di seluruh aplikasi
+ * @param {string} message - Pesan yang akan ditampilkan
+ * @param {string} type - Tipe notifikasi: 'success', 'error', 'info', 'warning'
+ * @param {number} duration - Durasi tampil dalam milidetik (default: 4000)
+ */
+function showCustomNotification(message, type = 'info', duration = 4000) {
+    // Hapus notifikasi lama jika ada
+    const existingNotification = document.querySelector('.custom-notification');
+    if (existingNotification) {
+        hideNotification(existingNotification);
+    }
+
+    // Buat elemen notifikasi
+    const notification = document.createElement('div');
+    notification.className = `custom-notification notification-${type}`;
+    
+    // Tentukan icon berdasarkan tipe
+    let icon = '';
+    switch (type) {
+        case 'success':
+            icon = 'fa-check-circle';
+            break;
+        case 'error':
+            icon = 'fa-exclamation-circle';
+            break;
+        case 'warning':
+            icon = 'fa-exclamation-triangle';
+            break;
+        case 'info':
+        default:
+            icon = 'fa-info-circle';
+            break;
+    }
+
+    // Struktur HTML notifikasi
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="notification-icon fas ${icon}"></i>
+            <div class="notification-text">${message}</div>
+            <button class="notification-close" onclick="hideNotification(this.parentElement.parentElement)">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="notification-progress"></div>
+    `;
+
+    // Tambahkan ke DOM
+    document.body.appendChild(notification);
+
+    // Trigger animasi masuk
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+
+    // Auto hide setelah duration
+    setTimeout(() => {
+        hideNotification(notification);
+    }, duration);
+
+    return notification;
+}
+
+/**
+ * Menyembunyikan notifikasi dengan animasi
+ * @param {HTMLElement} notification - Element notifikasi yang akan disembunyikan
+ */
+function hideNotification(notification) {
+    if (!notification || !notification.parentElement) return;
+    
+    notification.classList.remove('show');
+    notification.classList.add('hide');
+    
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.parentElement.removeChild(notification);
+        }
+    }, 400);
+}
+
+/**
+ * Menampilkan notifikasi sukses
+ * @param {string} message - Pesan sukses
+ */
+function showSuccessNotification(message) {
+    showCustomNotification(message, 'success');
+}
+
+/**
+ * Menampilkan notifikasi error
+ * @param {string} message - Pesan error
+ */
+function showErrorNotification(message) {
+    showCustomNotification(message, 'error');
+}
+
+/**
+ * Menampilkan notifikasi info
+ * @param {string} message - Pesan info
+ */
+function showInfoNotification(message) {
+    showCustomNotification(message, 'info');
+}
+
+/**
+ * Menampilkan notifikasi warning
+ * @param {string} message - Pesan warning
+ */
+function showWarningNotification(message) {
+    showCustomNotification(message, 'warning');
+}
+
+// Buat fungsi tersedia secara global
+window.showCustomNotification = showCustomNotification;
+window.hideNotification = hideNotification;
+window.showSuccessNotification = showSuccessNotification;
+window.showErrorNotification = showErrorNotification;
+window.showInfoNotification = showInfoNotification;
+window.showWarningNotification = showWarningNotification;
+// preloader logic
 window.addEventListener('load', () => {
     const preloader = document.querySelector('.preloader');
 
@@ -16,11 +133,7 @@ window.addEventListener('load', () => {
     }
 });
 
-
-// ================================================================
-// FUNGSI GLOBAL (Didefinisikan di luar DOMContentLoaded)
-// ================================================================
-
+// fungsi global
 function showNotification(message, type = "info") {
     const existingNotifications = document.querySelectorAll(".notification");
     existingNotifications.forEach((notification) => notification.remove());
@@ -144,9 +257,9 @@ function clearFieldError(e) {
 }
 
 
-// ================================================================
-// Inisialisasi dan Event Listener setelah DOM Siap
-// ================================================================
+
+
+// event listener setelah dom siap
 document.addEventListener("DOMContentLoaded", () => {
     
     // --- Definisi Fungsi Lokal ---
@@ -242,3 +355,4 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
     document.head.appendChild(style);
 });
+

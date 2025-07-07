@@ -1,13 +1,8 @@
-// ================================================================
-// FUNGSI GLOBAL untuk Halaman Profil
-// Didefinisikan di luar agar bisa diakses oleh atribut onclick di PHP.
-// ================================================================
-
 function openModal(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
     modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden'; // Mencegah scroll di background
+    document.body.style.overflow = 'hidden';
   }
 }
 
@@ -15,7 +10,7 @@ function closeModal(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
     modal.style.display = 'none';
-    document.body.style.overflow = 'auto'; // Kembalikan scroll
+    document.body.style.overflow = 'auto';
   }
 }
 
@@ -23,7 +18,7 @@ function openAvatarModal() {
     openModal('avatar-modal');
 }
 
-// FUNGSI EDIT PROFILE - DIPERBAIKI
+
 function openEditProfileModal() {
     console.log('Opening edit profile modal'); // Debug log
     
@@ -131,7 +126,6 @@ function editItem(id, type) {
   openModal(modalId);
 }
 
-// PERBAIKAN FUNGSI DELETE - Ini yang utama diperbaiki
 function deleteItem(id, type, title) {
   console.log('Delete function called with:', {id, type, title}); // Debug log
   

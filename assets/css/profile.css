@@ -376,16 +376,6 @@
   color: var(--white);
 }
 
-.status-kehilangan {
-  background: rgba(52, 152, 219, 0.9);
-  color: var(--white);
-}
-
-.status-selesai {
-  background: rgba(149, 165, 166, 0.9);
-  color: var(--white);
-}
-
 .profile-item .item-content {
   padding: 1.5rem;
 }

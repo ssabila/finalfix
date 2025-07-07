@@ -30,8 +30,22 @@ $currentPage = basename($_SERVER['PHP_SELF']); // Get current page filename
             <div class="nav-auth">
                 <?php if ($user): ?>
                     <a href="profile.php" class="btn-login <?= ($currentPage == 'profile.php') ? 'active' : '' ?>">
-                        <?php if (!empty($user['avatar']) && file_exists('uploads/avatars/' . $user['avatar'])): ?>
-                             <img src="uploads/avatars/<?= htmlspecialchars($user['avatar']) ?>" alt="Avatar" class="nav-avatar">
+                        <?php if (!empty($user['avatar'])): ?>
+                            <?php 
+                            // PERBAIKAN: Gunakan helper function untuk mendapatkan URL avatar yang benar
+                            $avatarUrl = $auth->getAvatarUrl($user);
+                            
+                            // Pastikan file avatar benar-benar ada
+                            if (file_exists($avatarUrl)): ?>
+                                <img src="<?= htmlspecialchars($avatarUrl) ?>" alt="Avatar" class="nav-avatar">
+                            <?php else: ?>
+                                <!-- Fallback jika file tidak ada -->
+                                <?php if ($isAdmin): ?>
+                                    <i class="fas fa-user-shield"></i>
+                                <?php else: ?>
+                                    <i class="fas fa-user"></i>
+                                <?php endif; ?>
+                            <?php endif; ?>
                         <?php elseif ($isAdmin): ?>
                             <i class="fas fa-user-shield"></i>
                         <?php else: ?>
@@ -50,12 +64,26 @@ $currentPage = basename($_SERVER['PHP_SELF']); // Get current page filename
             </div>
         </div>
         
-        <!-- Auth buttons untuk desktop (di luar nav-menu) -->
+        <!-- Auth buttons untuk desktop -->
         <div class="nav-auth">
             <?php if ($user): ?>
                 <a href="profile.php" class="btn-login <?= ($currentPage == 'profile.php') ? 'active' : '' ?>">
-                    <?php if (!empty($user['avatar']) && file_exists('uploads/avatars/' . $user['avatar'])): ?>
-                         <img src="uploads/avatars/<?= htmlspecialchars($user['avatar']) ?>" alt="Avatar" class="nav-avatar">
+                    <?php if (!empty($user['avatar'])): ?>
+                        <?php 
+                        // PERBAIKAN: Gunakan helper function untuk mendapatkan URL avatar yang benar
+                        $avatarUrl = $auth->getAvatarUrl($user);
+                        
+                        // Pastikan file avatar benar-benar ada
+                        if (file_exists($avatarUrl)): ?>
+                            <img src="<?= htmlspecialchars($avatarUrl) ?>" alt="Avatar" class="nav-avatar">
+                        <?php else: ?>
+                            <!-- Fallback jika file tidak ada -->
+                            <?php if ($isAdmin): ?>
+                                <i class="fas fa-user-shield"></i>
+                            <?php else: ?>
+                                <i class="fas fa-user"></i>
+                            <?php endif; ?>
+                        <?php endif; ?>
                     <?php elseif ($isAdmin): ?>
                         <i class="fas fa-user-shield"></i>
                     <?php else: ?>

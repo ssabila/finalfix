@@ -457,7 +457,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Validate file type
       const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"]
       if (!validTypes.includes(file.type)) {
-        alert("Hanya file gambar (JPG, PNG, GIF) yang diperbolehkan!")
+        showCustomNotification("Hanya file gambar (JPG, PNG, GIF) yang diperbolehkan!")
         input.value = ""
         return
       }
@@ -465,7 +465,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Validate file size (max 5MB)
       const maxSize = 5 * 1024 * 1024 // 5MB
       if (file.size > maxSize) {
-        alert("Ukuran file terlalu besar! Maksimal 5MB.")
+        showCustomNotification("Ukuran file terlalu besar! Maksimal 5MB.")
         input.value = ""
         return
       }

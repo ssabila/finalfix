@@ -69,6 +69,9 @@ try {
         $fileName = $user['id'] . '_' . time() . '.' . $fileType;
         $targetPath = $uploadDir . $fileName;
         
+        // PERBAIKAN: Simpan path relatif dari root aplikasi
+        $avatarPath = 'uploads/avatars/' . $fileName;
+        
         // Get current avatar to delete later
         $currentAvatarQuery = "SELECT avatar FROM users WHERE id = ?";
         $currentAvatarStmt = $db->prepare($currentAvatarQuery);
@@ -77,23 +80,37 @@ try {
         
         // Resize and save image
         if (resizeAndSaveImage($file['tmp_name'], $targetPath, $mimeType)) {
-            // Update database
+            // PERBAIKAN: Update database dengan path lengkap
             $updateQuery = "UPDATE users SET avatar = ? WHERE id = ?";
             $updateStmt = $db->prepare($updateQuery);
             
-            if ($updateStmt->execute([$fileName, $user['id']])) {
+            if ($updateStmt->execute([$avatarPath, $user['id']])) {
                 // Delete old avatar if exists
-                if ($currentAvatar && file_exists($uploadDir . $currentAvatar)) {
-                    unlink($uploadDir . $currentAvatar);
+                if ($currentAvatar) {
+                    // PERBAIKAN: Handle path lengkap atau nama file
+                    $oldAvatarPath = '';
+                    if (strpos($currentAvatar, 'uploads/') === 0) {
+                        // Sudah path lengkap
+                        $oldAvatarPath = '../../' . $currentAvatar;
+                    } else {
+                        // Masih nama file saja
+                        $oldAvatarPath = $uploadDir . $currentAvatar;
+                    }
+                    
+                    if (file_exists($oldAvatarPath)) {
+                        unlink($oldAvatarPath);
+                    }
                 }
                 
-                // Update session
-                $_SESSION['user_data']['avatar'] = $fileName;
+                // PERBAIKAN: Update session dengan path lengkap
+                if (isset($_SESSION['user_data'])) {
+                    $_SESSION['user_data']['avatar'] = $avatarPath;
+                }
                 
                 echo json_encode([
                     'success' => true,
                     'message' => 'Avatar uploaded successfully',
-                    'avatar_url' => 'uploads/avatars/' . $fileName
+                    'avatar_url' => $avatarPath
                 ]);
             } else {
                 // Delete uploaded file if database update fails
@@ -122,14 +139,25 @@ try {
         if ($updateStmt->execute([$user['id']])) {
             // Delete avatar file if exists
             if ($currentAvatar) {
-                $avatarPath = '../../uploads/avatars/' . $currentAvatar;
+                // PERBAIKAN: Handle path lengkap atau nama file
+                $avatarPath = '';
+                if (strpos($currentAvatar, 'uploads/') === 0) {
+                    // Sudah path lengkap
+                    $avatarPath = '../../' . $currentAvatar;
+                } else {
+                    // Masih nama file saja
+                    $avatarPath = '../../uploads/avatars/' . $currentAvatar;
+                }
+                
                 if (file_exists($avatarPath)) {
                     unlink($avatarPath);
                 }
             }
             
-            // Update session
-            unset($_SESSION['user_data']['avatar']);
+            // PERBAIKAN: Update session
+            if (isset($_SESSION['user_data'])) {
+                unset($_SESSION['user_data']['avatar']);
+            }
             
             echo json_encode([
                 'success' => true,
