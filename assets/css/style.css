@@ -520,9 +520,10 @@ body {
 
 /* Enhanced Forms */
 .form-group {
-  padding: 1rem;
+  padding: 0.2rem 1.5rem;
   margin-bottom: 0.5rem;
   position: relative;
+  margin-bottom: 0;
 }
 
 .form-group label {

@@ -79,18 +79,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             <?php if (!$success): ?>
             <form class="auth-form" method="POST">
-                <div class="form-group">
-                    <label for="firstName">Nama Depan</label>
-                    <div class="input-group">
-                        <i class="fas fa-user"></i>
-                        <input type="text" id="firstName" name="firstName" value="<?= htmlspecialchars($_POST['firstName'] ?? '') ?>" required>
+                <!-- Nama dalam satu baris -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">Nama Depan</label>
+                        <div class="input-group">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="firstName" name="firstName" value="<?= htmlspecialchars($_POST['firstName'] ?? '') ?>" required>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="lastName">Nama Belakang</label>
-                    <div class="input-group">
-                        <i class="fas fa-user"></i>
-                        <input type="text" id="lastName" name="lastName" value="<?= htmlspecialchars($_POST['lastName'] ?? '') ?>" required>
+                    <div class="form-group">
+                        <label for="lastName">Nama Belakang</label>
+                        <div class="input-group">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="lastName" name="lastName" value="<?= htmlspecialchars($_POST['lastName'] ?? '') ?>" required>
+                        </div>
                     </div>
                 </div>
                 
@@ -106,17 +109,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label for="email">Email</label>
                     <div class="input-group">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" id="email" name="email" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"placeholder="contoh@stis.ac.id atau @bps.go.id" required>
+                        <input type="email" id="email" name="email" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" required>
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="phone">Nomor WhatsApp</label>
+                    <label for="phone">Nomor Telepon</label>
                     <div class="input-group">
                         <i class="fas fa-phone"></i>
-                        <input type="tel" id="phone" name="phone" value="<?= htmlspecialchars($_POST['phone'] ?? '') ?>" required>
+                        <input type="text" id="phone" name="phone" value="<?= htmlspecialchars($_POST['phone'] ?? '') ?>" required>
                     </div>
                 </div>
+                
                 <div class="form-group">
                     <label for="password">Kata Sandi</label>
                     <div class="input-group">
@@ -127,6 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </button>
                     </div>
                 </div>
+                
                 <div class="form-group">
                     <label for="confirmPassword">Konfirmasi Kata Sandi</label>
                     <div class="input-group">
@@ -137,10 +142,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </button>
                     </div>
                 </div>
-
-                <button type="submit" class="btn-primary btn-full">
+                
+                <button type="submit" class="btn-primary">
                     <i class="fas fa-user-plus"></i>
-                    Daftar
+                    Daftar Sekarang
                 </button>
             </form>
             <?php endif; ?>

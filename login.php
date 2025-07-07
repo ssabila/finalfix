@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
                 
-                <button type="submit" class="btn-primary btn-full">
+                <button type="submit" class="btn-primary">
                     <i class="fas fa-sign-in-alt"></i>
                     Masuk
                 </button>
