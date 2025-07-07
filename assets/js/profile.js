@@ -144,27 +144,163 @@ function previewAvatar(input) {
     }
 }
 
+// FUNGSI EDIT PROFILE - DIPERBAIKI
+function openEditProfileModal() {
+    console.log('Opening edit profile modal'); // Debug log
+    
+    const modal = document.getElementById('edit-profile-modal');
+    if (!modal) {
+        console.error('Modal edit-profile-modal tidak ditemukan!');
+        alert('Modal tidak ditemukan. Pastikan modal HTML sudah ditambahkan.');
+        return;
+    }
+    
+    // Cek apakah userProfileData tersedia
+    if (typeof userProfileData === 'undefined') {
+        console.warn('userProfileData tidak tersedia, data akan kosong');
+        // Biarkan form kosong jika data tidak ada
+    } else {
+        // Isi form dengan data yang ada
+        try {
+            const fields = {
+                'edit_first_name': userProfileData.first_name || '',
+                'edit_last_name': userProfileData.last_name || '',
+                'edit_nim': userProfileData.nim || '',
+                'edit_email': userProfileData.email || '',
+                'edit_phone': userProfileData.phone || ''
+            };
+            
+            // Set nilai untuk setiap field
+            Object.keys(fields).forEach(fieldId => {
+                const element = modal.querySelector('#' + fieldId);
+                if (element) {
+                    element.value = fields[fieldId];
+                } else {
+                    console.warn('Element tidak ditemukan:', fieldId);
+                }
+            });
+        } catch (error) {
+            console.error('Error mengisi form:', error);
+        }
+    }
+    
+    // Reset password fields
+    const passwordFields = ['current_password', 'new_password', 'confirm_password'];
+    passwordFields.forEach(fieldId => {
+        const element = modal.querySelector('#' + fieldId);
+        if (element) {
+            element.value = '';
+        }
+    });
+    
+    openModal('edit-profile-modal');
+}
+
+// Fungsi untuk clear password fields saat modal dibuka
+function clearPasswordFields() {
+    const passwordFields = ['current_password', 'new_password', 'confirm_password'];
+    passwordFields.forEach(fieldId => {
+        const element = document.getElementById(fieldId);
+        if (element) {
+            element.value = '';
+        }
+    });
+}
+
 // ================================================================
 // Inisialisasi dan event listener yang tidak dipanggil via onclick
-// Boleh tetap di dalam DOMContentLoaded
 // ================================================================
 document.addEventListener("DOMContentLoaded", () => {
-  // Setup untuk tab switching
-  const tabButtons = document.querySelectorAll('.tab-btn');
-  const tabContents = document.querySelectorAll('.tab-content');
+    console.log('Profile page DOM loaded');
+    
+    // Setup untuk tab switching
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
 
-  tabButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const tabId = button.dataset.tab;
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabId = button.dataset.tab;
 
-      tabButtons.forEach(btn => btn.classList.remove('active'));
-      tabContents.forEach(content => content.classList.remove('active'));
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
 
-      button.classList.add('active');
-      const activeContent = document.getElementById(`${tabId}-tab`);
-      if (activeContent) {
-        activeContent.classList.add('active');
-      }
+            button.classList.add('active');
+            const activeContent = document.getElementById(`${tabId}-tab`);
+            if (activeContent) {
+                activeContent.classList.add('active');
+            }
+        });
     });
-  });
+    
+    // Setup edit profile form validation
+    const editProfileForm = document.getElementById('edit-profile-form');
+    if (editProfileForm) {
+        console.log('Setting up edit profile form validation');
+        
+        editProfileForm.addEventListener('submit', function(e) {
+            const newPassword = document.getElementById('new_password')?.value || '';
+            const confirmPassword = document.getElementById('confirm_password')?.value || '';
+            const currentPassword = document.getElementById('current_password')?.value || '';
+            
+            // Validasi password jika ada yang diisi
+            if (currentPassword || newPassword || confirmPassword) {
+                if (!currentPassword || !newPassword || !confirmPassword) {
+                    e.preventDefault();
+                    alert('Untuk mengubah password, semua field password harus diisi');
+                    return false;
+                }
+                
+                if (newPassword !== confirmPassword) {
+                    e.preventDefault();
+                    alert('Konfirmasi password baru tidak cocok');
+                    return false;
+                }
+                
+                if (newPassword.length < 6) {
+                    e.preventDefault();
+                    alert('Password baru minimal 6 karakter');
+                    return false;
+                }
+            }
+            
+            // Validasi email domain
+            const emailField = document.getElementById('edit_email');
+            if (emailField) {
+                const email = emailField.value;
+                const emailDomain = email.split('@')[1];
+                if (emailDomain && emailDomain !== 'stis.ac.id' && emailDomain !== 'bps.go.id') {
+                    e.preventDefault();
+                    alert('Email harus berakhiran @stis.ac.id atau @bps.go.id');
+                    return false;
+                }
+            }
+        });
+    } else {
+        console.log('Edit profile form tidak ditemukan');
+    }
+    
+    // Setup toggle password untuk semua password fields di modal edit profile
+    const editModalToggleButtons = document.querySelectorAll('#edit-profile-modal .toggle-password');
+    console.log('Found toggle password buttons:', editModalToggleButtons.length);
+    
+    editModalToggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const passwordInput = this.parentElement.querySelector('input');
+            const icon = this.querySelector('i');
+            
+            if (passwordInput && icon) {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    passwordInput.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            }
+        });
+    });
+    
+    console.log('Profile page setup complete');
 });

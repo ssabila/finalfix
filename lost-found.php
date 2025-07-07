@@ -136,7 +136,7 @@ if (isset($_GET['category']) && !empty($_GET['category']) && is_numeric($_GET['c
     $params[] = (int)$_GET['category'];
 }
 
-if (isset($_GET['type']) && !empty($_GET['type']) && in_array($_GET['type'], ['hilang', 'ditemukan'])) {
+if (isset($_GET['type']) && !empty($_GET['type']) && in_array($_GET['type'], ['kehilangan', 'penemuan'])) {
     $whereConditions[] = 'lf.type = ?';
     $params[] = $_GET['type'];
 }
@@ -206,8 +206,8 @@ try {
                     </select>
                     <select name="type">
                         <option value="">Semua Status</option>
-                        <option value="hilang" <?= (($_GET['type'] ?? '') === 'hilang') ? 'selected' : '' ?>>Hilang</option>
-                        <option value="ditemukan" <?= (($_GET['type'] ?? '') === 'ditemukan') ? 'selected' : '' ?>>Ditemukan</option>
+                        <option value="kehilangan" <?= (($_GET['type'] ?? '') === 'kehilangan') ? 'selected' : '' ?>>Kehilangan</option>
+                        <option value="penemuan" <?= (($_GET['type'] ?? '') === 'penemuan') ? 'selected' : '' ?>>Penemuan</option>
                     </select>
                 </div>
             </form>
@@ -262,7 +262,7 @@ try {
                                 <?php endif; ?>
                                 
                                 <div class="item-status status-<?= $item['type'] ?>">
-                                    <?= $item['type'] === 'hilang' ? 'HILANG' : 'DITEMUKAN' ?>
+                                    <?= $item['type'] === 'kehilangan' ? 'KEHILANGAN' : 'PENEMUAN' ?>
                                 </div>
                             </div>
                             
@@ -366,8 +366,8 @@ try {
                     <label for="type">Jenis Laporan</label>
                     <select id="type" name="type" required>
                         <option value="">Pilih jenis laporan</option>
-                        <option value="hilang">Barang Hilang</option>
-                        <option value="ditemukan">Barang Ditemukan</option>
+                        <option value="kehilangan">Kehilangan Barang</option>
+                        <option value="penemuan">Penemuan Barang</option>
                     </select>
                 </div>
                 

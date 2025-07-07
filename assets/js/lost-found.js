@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
     })
 
     const statusClass = `status-${item.type}`
-    const statusText = item.type === "hilang" ? "HILANG" : "DITEMUKAN"
+    const statusText = item.type === "kehilangan" ? "KEHILANGAN" : "PENEMUAN"
     const currentUser = getCurrentUser()
     const isOwner = currentUser && currentUser.id == item.user_id
 
@@ -553,7 +553,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="detail-category">
             <span class="category-badge">${itemData.category_name}</span>
             <span class="status-badge status-${itemData.type}">
-              ${itemData.type === "hilang" ? "BARANG HILANG" : "BARANG DITEMUKAN"}
+              ${itemData.type === "kehilangan" ? "BARANG HILANG" : "BARANG PENEMUAN"}
             </span>
           </div>
           

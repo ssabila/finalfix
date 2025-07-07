@@ -431,6 +431,146 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_activity'])) {
     }
 }
 
+// Handle edit profile
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_profile'])) {
+    $data = [
+        'first_name' => trim($_POST['first_name'] ?? ''),
+        'last_name' => trim($_POST['last_name'] ?? ''),
+        'nim' => trim($_POST['nim'] ?? ''),
+        'email' => trim($_POST['email'] ?? ''),
+        'phone' => trim($_POST['phone'] ?? ''),
+        'current_password' => $_POST['current_password'] ?? '',
+        'new_password' => $_POST['new_password'] ?? '',
+        'confirm_password' => $_POST['confirm_password'] ?? ''
+    ];
+    
+    // Validasi input dasar
+    if (empty($data['first_name']) || empty($data['last_name']) || 
+        empty($data['nim']) || empty($data['email']) || empty($data['phone'])) {
+        $message = 'Semua field data pribadi wajib diisi';
+        $messageType = 'error';
+    } 
+    // Validasi email domain
+    else {
+        $email_domain = substr(strrchr($data['email'], "@"), 1);
+        if ($email_domain !== 'stis.ac.id' && $email_domain !== 'bps.go.id') {
+            $message = 'Email harus berakhiran @stis.ac.id atau @bps.go.id';
+            $messageType = 'error';
+        }
+        // Cek apakah email sudah digunakan oleh user lain
+        else {
+            $checkEmailQuery = "SELECT id FROM users WHERE email = ? AND id != ?";
+            $checkEmailStmt = $db->prepare($checkEmailQuery);
+            $checkEmailStmt->execute([$data['email'], $user['id']]);
+            
+            if ($checkEmailStmt->fetch()) {
+                $message = 'Email sudah digunakan oleh pengguna lain';
+                $messageType = 'error';
+            }
+            // Cek apakah NIM sudah digunakan oleh user lain
+            else {
+                $checkNimQuery = "SELECT id FROM users WHERE nim = ? AND id != ?";
+                $checkNimStmt = $db->prepare($checkNimQuery);
+                $checkNimStmt->execute([$data['nim'], $user['id']]);
+                
+                if ($checkNimStmt->fetch()) {
+                    $message = 'NIM sudah digunakan oleh pengguna lain';
+                    $messageType = 'error';
+                }
+                // Proses update password jika diisi
+                else {
+                    $updatePasswordQuery = '';
+                    $updatePasswordValue = null;
+                    
+                    // Jika user ingin mengubah password
+                    if (!empty($data['current_password']) || !empty($data['new_password']) || !empty($data['confirm_password'])) {
+                        if (empty($data['current_password']) || empty($data['new_password']) || empty($data['confirm_password'])) {
+                            $message = 'Untuk mengubah password, semua field password harus diisi';
+                            $messageType = 'error';
+                        } else if ($data['new_password'] !== $data['confirm_password']) {
+                            $message = 'Konfirmasi password baru tidak cocok';
+                            $messageType = 'error';
+                        } else if (strlen($data['new_password']) < 6) {
+                            $message = 'Password baru minimal 6 karakter';
+                            $messageType = 'error';
+                        } else {
+                            // Verifikasi password saat ini
+                            $currentUserQuery = "SELECT password FROM users WHERE id = ?";
+                            $currentUserStmt = $db->prepare($currentUserQuery);
+                            $currentUserStmt->execute([$user['id']]);
+                            $currentUserData = $currentUserStmt->fetch();
+                            
+                            if (!password_verify($data['current_password'], $currentUserData['password'])) {
+                                $message = 'Password saat ini tidak benar';
+                                $messageType = 'error';
+                            } else {
+                                $updatePasswordQuery = ', password = ?';
+                                $updatePasswordValue = password_hash($data['new_password'], PASSWORD_DEFAULT);
+                            }
+                        }
+                    }
+                    
+                    // Jika tidak ada error, lakukan update
+                    if (empty($message)) {
+                        try {
+                            $updateQuery = "UPDATE users SET first_name = ?, last_name = ?, nim = ?, email = ?, phone = ?" . $updatePasswordQuery . " WHERE id = ?";
+                            $updateStmt = $db->prepare($updateQuery);
+                            
+                            $updateParams = [
+                                $data['first_name'],
+                                $data['last_name'], 
+                                $data['nim'],
+                                $data['email'],
+                                $data['phone']
+                            ];
+                            
+                            if ($updatePasswordValue) {
+                                $updateParams[] = $updatePasswordValue;
+                            }
+                            $updateParams[] = $user['id'];
+                            
+                            if ($updateStmt->execute($updateParams)) {
+                                // Update session data
+                                $_SESSION['user_data'] = [
+                                    'id' => $user['id'],
+                                    'nim' => $data['nim'],
+                                    'first_name' => $data['first_name'],
+                                    'last_name' => $data['last_name'],
+                                    'email' => $data['email'],
+                                    'phone' => $data['phone'],
+                                    'role' => $user['role']
+                                ];
+                                
+                                // Log activity
+                                $logQuery = "INSERT INTO activity_logs (user_id, action, table_name, record_id, description) VALUES (?, ?, ?, ?, ?)";
+                                $logStmt = $db->prepare($logQuery);
+                                $logDescription = 'Profile updated';
+                                if ($updatePasswordValue) {
+                                    $logDescription .= ' with password change';
+                                }
+                                $logStmt->execute([$user['id'], 'UPDATE', 'users', $user['id'], $logDescription]);
+                                
+                                $message = 'Profil berhasil diperbarui';
+                                $messageType = 'success';
+                                
+                                // Refresh user data
+                                $user = $_SESSION['user_data'];
+                            } else {
+                                $message = 'Gagal memperbarui profil';
+                                $messageType = 'error';
+                            }
+                        } catch (Exception $e) {
+                            error_log("Update profile error: " . $e->getMessage());
+                            $message = 'Terjadi kesalahan saat memperbarui profil';
+                            $messageType = 'error';
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 // Get updated user data for avatar display
 $user = $auth->getCurrentUser();
 
@@ -484,8 +624,6 @@ $resolvedItems = count(array_filter($userLostFound, function($item) {
     <link rel="stylesheet" href="assets/css/profile.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="assets/js/main.js"></script>
-    <script src="assets/js/profile.js"></script>
 </head>
 <body>
     <!-- Navigation -->
@@ -510,6 +648,10 @@ $resolvedItems = count(array_filter($userLostFound, function($item) {
                     <h1><?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?></h1>
                     <p>NIM: <?= htmlspecialchars($user['nim']) ?></p>
                     <p><?= htmlspecialchars($user['email']) ?></p>
+                    <button onclick="openEditProfileModal()" class="btn-primary edit-profile-btn">
+                        <i class="fas fa-edit"></i>
+                        Edit Profil
+                    </button>
                 </div>
             </div>
             <div class="profile-stats">
@@ -579,10 +721,10 @@ $resolvedItems = count(array_filter($userLostFound, function($item) {
                                     <?php if ($item['image']): ?>
                                         <img src="<?= htmlspecialchars($item['image']) ?>" alt="<?= htmlspecialchars($item['title']) ?>">
                                     <?php else: ?>
-                                        <i class="fas fa-<?= $item['type'] === 'hilang' ? 'exclamation-triangle' : 'check-circle' ?>"></i>
+                                        <i class="fas fa-<?= $item['type'] === 'kehilangan' ? 'exclamation-triangle' : 'check-circle' ?>"></i>
                                     <?php endif; ?>
                                     <div class="item-status status-<?= $item['type'] ?>">
-                                        <?= $item['type'] === 'hilang' ? 'Hilang' : 'Ditemukan' ?>
+                                        <?= $item['type'] === 'kehilangan' ? 'Kehilangan' : 'Penemuan' ?>
                                     </div>
                                 </div>
                                 <div class="item-content">
@@ -757,8 +899,8 @@ $resolvedItems = count(array_filter($userLostFound, function($item) {
                     <label for="edit_lf_type">Jenis Laporan</label>
                     <select id="edit_lf_type" name="type" required>
                         <option value="">Pilih jenis laporan</option>
-                        <option value="hilang">Barang Hilang</option>
-                        <option value="ditemukan">Barang Ditemukan</option>
+                        <option value="kehilangan">Kehilangan Barang</option>
+                        <option value="penemuan">Penemuan Barang</option>
                     </select>
                 </div>
                 
@@ -981,8 +1123,8 @@ $resolvedItems = count(array_filter($userLostFound, function($item) {
                     <label for="lf_type">Jenis Laporan</label>
                     <select id="lf_type" name="type" required>
                         <option value="">Pilih jenis laporan</option>
-                        <option value="hilang">Barang Hilang</option>
-                        <option value="ditemukan">Barang Ditemukan</option>
+                        <option value="kehilangan">Kehilangan Barang</option>
+                        <option value="penemuan">Penemuan Barang</option>
                     </select>
                 </div>
                 
@@ -1115,9 +1257,123 @@ $resolvedItems = count(array_filter($userLostFound, function($item) {
         </div>
     </div>
 
+    <!-- Edit Profile Modal -->
+    <div class="modal" id="edit-profile-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Profil</h2>
+                <button onclick="closeModal('edit-profile-modal')" class="close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form class="modal-form" id="edit-profile-form" method="POST">
+                <input type="hidden" name="edit_profile" value="1">
+                
+                <div class="form-group">
+                    <label for="edit_first_name">Nama Depan</label>
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="edit_first_name" name="first_name" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit_last_name">Nama Belakang</label>
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="edit_last_name" name="last_name" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit_nim">NIM</label>
+                    <div class="input-group">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" id="edit_nim" name="nim" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit_email">Email</label>
+                    <div class="input-group">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="edit_email" name="email" placeholder="contoh@stis.ac.id atau @bps.go.id" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit_phone">Nomor WhatsApp</label>
+                    <div class="input-group">
+                        <i class="fas fa-phone"></i>
+                        <input type="tel" id="edit_phone" name="phone" required>
+                    </div>
+                </div>
+                
+                <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+                
+                <h3 style="margin-bottom: 1rem; color: var(--text-dark);">Ubah Password (Opsional)</h3>
+                
+                <div class="form-group">
+                    <label for="current_password">Password Saat Ini</label>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="current_password" name="current_password" placeholder="Kosongkan jika tidak ingin mengubah password">
+                        <button type="button" class="toggle-password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="new_password">Password Baru</label>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="new_password" name="new_password" placeholder="Kosongkan jika tidak ingin mengubah password">
+                        <button type="button" class="toggle-password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password">Konfirmasi Password Baru</label>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Kosongkan jika tidak ingin mengubah password">
+                        <button type="button" class="toggle-password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" onclick="closeModal('edit-profile-modal')" class="btn-secondary">
+                        <i class="fas fa-times"></i>
+                        Batal
+                    </button>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i>
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Footer -->
     <?php include('assets/php/footer.php'); ?>
 
+
+    <script>
+    // Data user untuk JavaScript
+    const userProfileData = {
+        first_name: '<?= htmlspecialchars($user['first_name']) ?>',
+        last_name: '<?= htmlspecialchars($user['last_name']) ?>',
+        nim: '<?= htmlspecialchars($user['nim']) ?>',
+        email: '<?= htmlspecialchars($user['email']) ?>',
+        phone: '<?= htmlspecialchars($user['phone']) ?>'
+    };
+    </script>
     <script src="assets/js/main.js"></script>
     <script src="assets/js/profile.js"></script>
 

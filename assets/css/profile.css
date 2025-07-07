@@ -59,10 +59,6 @@
   margin-bottom: 0.5rem;
 }
 
-.edit-profile-btn {
-  margin-top: 1rem;
-}
-
 .profile-stats {
   display: flex;
   gap: 2rem;
@@ -370,17 +366,17 @@
   z-index: 2;
 }
 
-.status-hilang {
+.status-kehilangan {
   background: rgba(231, 76, 60, 0.9);
   color: var(--white);
 }
 
-.status-ditemukan {
+.status-penemuan {
   background: rgba(46, 204, 113, 0.9);
   color: var(--white);
 }
 
-.status-active {
+.status-kehilangan {
   background: rgba(52, 152, 219, 0.9);
   color: var(--white);
 }
@@ -692,4 +688,163 @@
   .avatar-upload-section {
     padding: 1rem;
   }
+}
+
+/* Edit Profile Button Styling */
+.edit-profile-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--primary-color);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.edit-profile-btn:hover {
+    background: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(75, 195, 255, 0.3);
+}
+
+.edit-profile-btn i {
+    font-size: 0.9rem;
+}
+
+/* Modal styling enhancements for edit profile */
+#edit-profile-modal .modal-content {
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Password section styling */
+#edit-profile-modal h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-left: 1.5rem;
+}
+
+#edit-profile-modal h3::before {
+    content: "\f023";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    color: var(--primary-color);
+}
+
+/* Form section divider */
+#edit-profile-modal hr {
+    margin: 2rem 0;
+    border: none;
+    border-top: 1px solid var(--border-color);
+    position: relative;
+}
+
+#edit-profile-modal hr::after {
+    content: "Ubah Password (Opsional)";
+    position: absolute;
+    top: -0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--white);
+    padding: 0 1rem;
+    color: var(--text-light);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Enhanced form validation styling */
+.form-group.error input {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.1);
+}
+
+.form-group.success input {
+    border-color: #2ecc71;
+    box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.1);
+}
+
+/* Password strength indicator */
+.password-strength {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.password-strength.weak {
+    color: #e74c3c;
+}
+
+.password-strength.medium {
+    color: #f39c12;
+}
+
+.password-strength.strong {
+    color: #2ecc71;
+}
+
+/* Toggle password button enhancements */
+#edit-profile-modal .toggle-password {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: var(--transition);
+    z-index: 3;
+    padding: 0.25rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+#edit-profile-modal .toggle-password:hover {
+    color: var(--text-dark);
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+#edit-profile-modal .toggle-password:focus {
+    outline: none;
+    color: var(--primary-color);
+    background-color: rgba(75, 195, 255, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #edit-profile-modal .modal-content {
+        margin: 5% auto;
+        max-width: 95%;
+        padding: 1.5rem;
+    }
+    
+    .edit-profile-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+    
+    #edit-profile-modal .form-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    #edit-profile-modal .form-actions .btn-primary,
+    #edit-profile-modal .form-actions .btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
 }

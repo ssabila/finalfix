@@ -161,11 +161,19 @@ body {
 
 .nav-container {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 1rem 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  position: relative; 
+}
+
+.nav-logo {
+  position: absolute;
+  left: 2rem;
+  display: flex;
+  align-items: center;
 }
 
 .nav-logo img {
@@ -177,6 +185,12 @@ body {
   display: flex;
   align-items: center;
   gap: 2rem;
+  justify-content: center;
+}
+
+/* Sembunyikan nav-auth yang ada di dalam nav-menu */
+.nav-menu .nav-auth {
+  display: none;
 }
 
 .nav-link {
@@ -215,10 +229,13 @@ body {
 }
 
 .nav-auth {
+  position: absolute;
+  right: 2rem;
   display: flex;
   gap: 1rem;
   align-items: center;
 }
+
 
 /* Style for admin badge and nav avatar in navbar */
 .nav-logo .admin-badge {
@@ -249,6 +266,7 @@ body {
     margin-left: 10px; 
     font-weight: 600 !important; 
     box-shadow: 0 2px 4px rgba(220,53,69,0.3);
+    transition: var(--transition);
 }
 .admin-dashboard-link:hover {
     color: white !important;
@@ -665,6 +683,7 @@ select {
   background-position: right 1rem center;
   background-size: 1rem;
   padding-right: 3rem !important;
+  font-family: inherit;
 }
 
 .form-actions {
@@ -964,6 +983,57 @@ select {
   }
 }
 
+/* Responsive Design untuk Mobile */
+@media (max-width: 768px) {
+  .nav-container {
+    justify-content: space-between;
+    position: relative;
+  }
+  
+  .nav-logo {
+    position: static;
+  }
+  
+  .nav-auth {
+    position: static;
+    order: 3;
+  }
+  
+  .nav-menu {
+    position: fixed;
+    top: 70px;
+    left: -100%;
+    width: 100%;
+    height: calc(100vh - 70px);
+    background: var(--white);
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding-top: 2rem;
+    transition: var(--transition);
+    box-shadow: var(--shadow);
+    order: 2;
+  }
+
+  .nav-menu.active {
+    left: 0;
+  }
+
+  /* Tampilkan auth di mobile menu */
+  .nav-menu .nav-auth {
+    display: flex !important;
+    position: static !important;
+    flex-direction: column;
+    margin-top: 2rem;
+    gap: 1rem;
+  }
+
+  /* Sembunyikan auth yang di luar menu pada mobile */
+  .nav-container > .nav-auth {
+    display: none;
+  }
+}
+
 @media (max-width: 480px) {
   .nav-container {
     padding: 1rem;
@@ -979,6 +1049,14 @@ select {
   .btn-outline {
     padding: 0.6rem 1.2rem;
     font-size: 0.9rem;
+  }
+
+  .nav-logo {
+    left: 1rem; /* Adjust untuk mobile kecil */
+  }
+  
+  .nav-auth {
+    right: 1rem; /* Adjust untuk mobile kecil */
   }
 }
 

@@ -187,12 +187,12 @@
   z-index: 2;
 }
 
-.status-hilang {
+.status-kehilangan {
   background: rgba(231, 76, 60, 0.9);
   color: var(--white);
 }
 
-.status-ditemukan {
+.status-penemuan {
   background: rgba(46, 204, 113, 0.9);
   color: var(--white);
 }
@@ -402,23 +402,23 @@
   animation: pulse 2s infinite;
 }
 
-.status-badge.status-hilang {
+.status-badge.status-kehilangan {
   background: linear-gradient(135deg, rgba(231, 76, 60, 0.15), rgba(255, 255, 255, 0.9));
   color: #c0392b;
   border: 2px solid rgba(231, 76, 60, 0.3);
 }
 
-.status-badge.status-hilang::before {
+.status-badge.status-kehilangan::before {
   background: #e74c3c;
 }
 
-.status-badge.status-ditemukan {
+.status-badge.status-penemuan {
   background: linear-gradient(135deg, rgba(46, 204, 113, 0.15), rgba(255, 255, 255, 0.9));
   color: #27ae60;
   border: 2px solid rgba(46, 204, 113, 0.3);
 }
 
-.status-badge.status-ditemukan::before {
+.status-badge.status-penemuan::before {
   background: #2ecc71;
 }
 
