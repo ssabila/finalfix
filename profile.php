@@ -198,8 +198,9 @@ require_once 'includes/data/profile_data.php';
                                     <?php else: ?>
                                         <i class="fas fa-calendar-alt"></i>
                                     <?php endif; ?>
-                                    <div class="item-status status-active">
-                                        Aktif
+                                    <div class="activity-date">
+                                            <span class="day"><?= date('d', strtotime($activity['event_date'])) ?></span>
+                                            <span class="month"><?= date('M', strtotime($activity['event_date'])) ?></span>
                                     </div>
                                 </div>
                                 <div class="item-content">

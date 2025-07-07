@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../config/database.php';
 
 $auth = new Auth();
-$auth->requireAuth(); // Require authentication for this page
+$auth->requireAuth(); 
 
 $user = $auth->getCurrentUser();
 $database = new Database();
@@ -10,6 +10,49 @@ $db = $database->getConnection();
 
 $message = '';
 $messageType = '';
+
+function validateActivityDate($eventDate, $eventTime = null) {
+    if (empty($eventDate)) {
+        return 'Tanggal kegiatan wajib diisi';
+    }
+    
+    $selectedDate = new DateTime($eventDate);
+    $today = new DateTime();
+    $today->setTime(0, 0, 0);
+    
+    if ($selectedDate < $today) {
+        return 'Tanggal kegiatan tidak boleh di masa lalu';
+    }
+    
+    
+    if (!empty($eventTime)) {
+        $selectedDateTime = new DateTime($eventDate . ' ' . $eventTime);
+        $now = new DateTime();
+        
+        if ($selectedDateTime < $now) {
+            return 'Waktu kegiatan tidak boleh di masa lalu';
+        }
+    }
+    
+    return null; 
+}
+
+// Fungsi validasi tanggal lost & found
+function validateLostFoundDate($dateOccurred) {
+    if (empty($dateOccurred)) {
+        return 'Tanggal kejadian wajib diisi';
+    }
+    
+    $selectedDate = new DateTime($dateOccurred);
+    $today = new DateTime();
+    $today->setTime(23, 59, 59);
+    
+    if ($selectedDate > $today) {
+        return 'Tanggal kejadian tidak boleh di masa depan';
+    }
+    
+    return null; // Valid
+}
 
 // Handle edit lost & found item
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_lost_found'])) {
@@ -32,44 +75,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_lost_found'])) {
                 'date_occurred' => $_POST['date_occurred'] ?? ''
             ];
             
+            // Validasi basic
             if (empty($data['title']) || empty($data['description']) || empty($data['type']) || 
                 empty($data['category_id']) || empty($data['location']) || empty($data['date_occurred'])) {
                 $message = 'Semua field wajib diisi';
                 $messageType = 'error';
             } else {
-                // Handle image upload
-                $imagePath = $item['image']; // Keep existing image by default
-                if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                    $uploadDir = 'uploads/lost-found/';
-                    $fileExtension = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
-                    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
-                    
-                    if (in_array($fileExtension, $allowedExtensions)) {
-                        // Delete old image if exists
-                        if (!empty($item['image']) && file_exists($item['image'])) {
-                            unlink($item['image']);
+                $dateError = validateLostFoundDate($data['date_occurred']);
+                if ($dateError) {
+                    $message = $dateError;
+                    $messageType = 'error';
+                } else {
+                    // Handle image upload
+                    $imagePath = $item['image']; // Keep existing image by default
+                    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                        $uploadDir = 'uploads/lost-found/';
+                        if (!is_dir($uploadDir)) {
+                            mkdir($uploadDir, 0755, true);
                         }
                         
-                        $fileName = uniqid() . '.' . $fileExtension;
-                        $targetPath = $uploadDir . $fileName;
+                        $fileExtension = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+                        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
                         
-                        if (move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
-                            $imagePath = $targetPath;
+                        if (in_array($fileExtension, $allowedExtensions)) {
+                            // Delete old image if exists
+                            if (!empty($item['image']) && file_exists($item['image'])) {
+                                unlink($item['image']);
+                            }
+                            
+                            $fileName = uniqid() . '.' . $fileExtension;
+                            $targetPath = $uploadDir . $fileName;
+                            
+                            if (move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
+                                $imagePath = $targetPath;
+                            }
                         }
                     }
-                }
-                
-                // Update database
-                $updateQuery = "UPDATE lost_found_items SET title = ?, description = ?, type = ?, category_id = ?, location = ?, date_occurred = ?, image = ? WHERE id = ? AND user_id = ?";
-                $updateStmt = $db->prepare($updateQuery);
-                
-                if ($updateStmt->execute([$data['title'], $data['description'], $data['type'], $data['category_id'], 
-                                         $data['location'], $data['date_occurred'], $imagePath, $itemId, $user['id']])) {
-                    header('Location: profile.php?edited_lf=1');
-                    exit;
-                } else {
-                    $message = 'Gagal mengupdate laporan';
-                    $messageType = 'error';
+                    
+                    // Update database
+                    $updateQuery = "UPDATE lost_found_items SET title = ?, description = ?, type = ?, category_id = ?, location = ?, date_occurred = ?, image = ? WHERE id = ? AND user_id = ?";
+                    $updateStmt = $db->prepare($updateQuery);
+                    
+                    if ($updateStmt->execute([$data['title'], $data['description'], $data['type'], $data['category_id'], 
+                                             $data['location'], $data['date_occurred'], $imagePath, $itemId, $user['id']])) {
+                        header('Location: profile.php?edited_lf=1');
+                        exit;
+                    } else {
+                        $message = 'Gagal mengupdate laporan';
+                        $messageType = 'error';
+                    }
                 }
             }
         } else {
@@ -79,72 +133,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_lost_found'])) {
     }
 }
 
-// Handle edit activity
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_activity'])) {
-    $itemId = $_POST['item_id'] ?? 0;
+// Handle Activity form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_activity'])) {
+    $data = [
+        'title' => $_POST['title'] ?? '',
+        'description' => $_POST['description'] ?? '',
+        'category_id' => $_POST['category_id'] ?? '',
+        'event_date' => $_POST['event_date'] ?? '',
+        'event_time' => $_POST['event_time'] ?? '',
+        'location' => $_POST['location'] ?? '',
+        'organizer' => $_POST['organizer'] ?? ''
+    ];
     
-    if ($itemId > 0) {
-        // Check if activity belongs to current user
-        $checkQuery = "SELECT * FROM activities WHERE id = ? AND user_id = ?";
-        $checkStmt = $db->prepare($checkQuery);
-        $checkStmt->execute([$itemId, $user['id']]);
-        $activity = $checkStmt->fetch();
-        
-        if ($activity) {
-            $data = [
-                'title' => $_POST['title'] ?? '',
-                'description' => $_POST['description'] ?? '',
-                'category_id' => $_POST['category_id'] ?? '',
-                'event_date' => $_POST['event_date'] ?? '',
-                'event_time' => $_POST['event_time'] ?? '',
-                'location' => $_POST['location'] ?? '',
-                'organizer' => $_POST['organizer'] ?? ''
-            ];
-            
-            if (empty($data['title']) || empty($data['description']) || empty($data['category_id']) || 
-                empty($data['event_date']) || empty($data['event_time']) || empty($data['location']) || empty($data['organizer'])) {
-                $message = 'Semua field wajib diisi';
-                $messageType = 'error';
-            } else {
-                // Handle image upload
-                $imagePath = $activity['image']; // Keep existing image by default
-                if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                    $uploadDir = 'uploads/activities/';
-                    $fileExtension = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
-                    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+    // Validasi basic
+    if (empty($data['title']) || empty($data['description']) || empty($data['category_id']) || 
+        empty($data['event_date']) || empty($data['event_time']) || empty($data['location']) || empty($data['organizer'])) {
+        $message = 'Semua field wajib diisi';
+        $messageType = 'error';
+    } else {
+        $dateError = validateActivityDate($data['event_date'], $data['event_time']);
+        if ($dateError) {
+            $message = $dateError;
+            $messageType = 'error';
+        } else {
+            // Handle image upload
+            $imagePath = null;
+            if (isset($_FILES['act_image']) && $_FILES['act_image']['error'] === UPLOAD_ERR_OK) {
+                $uploadDir = 'uploads/activities/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
+                
+                $fileExtension = strtolower(pathinfo($_FILES['act_image']['name'], PATHINFO_EXTENSION));
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+                
+                if (in_array($fileExtension, $allowedExtensions)) {
+                    $fileName = uniqid() . '.' . $fileExtension;
+                    $targetPath = $uploadDir . $fileName;
                     
-                    if (in_array($fileExtension, $allowedExtensions)) {
-                        // Delete old image if exists
-                        if (!empty($activity['image']) && file_exists($activity['image'])) {
-                            unlink($activity['image']);
-                        }
-                        
-                        $fileName = uniqid() . '.' . $fileExtension;
-                        $targetPath = $uploadDir . $fileName;
-                        
-                        if (move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
-                            $imagePath = $targetPath;
-                        }
+                    if (move_uploaded_file($_FILES['act_image']['tmp_name'], $targetPath)) {
+                        $imagePath = $targetPath;
                     }
                 }
-                
-                // Update database
-                $updateQuery = "UPDATE activities SET title = ?, description = ?, category_id = ?, event_date = ?, event_time = ?, location = ?, organizer = ?, image = ? WHERE id = ? AND user_id = ?";
-                $updateStmt = $db->prepare($updateQuery);
-                
-                if ($updateStmt->execute([$data['title'], $data['description'], $data['category_id'], 
-                                         $data['event_date'], $data['event_time'], $data['location'], $data['organizer'], 
-                                         $imagePath, $itemId, $user['id']])) {
-                    header('Location: profile.php?edited_activity=1');
-                    exit;
-                } else {
-                    $message = 'Gagal mengupdate kegiatan';
-                    $messageType = 'error';
-                }
             }
-        } else {
-            $message = 'Kegiatan tidak ditemukan atau Anda tidak memiliki akses';
-            $messageType = 'error';
+            
+            $insertQuery = "INSERT INTO activities (user_id, category_id, title, description, event_date, event_time, location, organizer, contact_info, image) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $db->prepare($insertQuery);
+            
+            if ($stmt->execute([$user['id'], $data['category_id'], $data['title'], $data['description'], 
+                               $data['event_date'], $data['event_time'], $data['location'], $data['organizer'], $user['phone'], $imagePath])) {
+                $message = 'Kegiatan berhasil ditambahkan!';
+                $messageType = 'success';
+            } else {
+                $message = 'Gagal menambahkan kegiatan';
+                $messageType = 'error';
+            }
         }
     }
 }
@@ -414,43 +458,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_lost_found'])) {
         'date_occurred' => $_POST['date_occurred'] ?? ''
     ];
     
+    // Validasi basic
     if (empty($data['title']) || empty($data['description']) || empty($data['type']) || 
         empty($data['category_id']) || empty($data['location']) || empty($data['date_occurred'])) {
         $message = 'Semua field wajib diisi';
         $messageType = 'error';
     } else {
-        // Handle image upload
-        $imagePath = null;
-        if (isset($_FILES['lf_image']) && $_FILES['lf_image']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = 'uploads/lost-found/';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
-            }
-            
-            $fileExtension = strtolower(pathinfo($_FILES['lf_image']['name'], PATHINFO_EXTENSION));
-            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
-            
-            if (in_array($fileExtension, $allowedExtensions)) {
-                $fileName = uniqid() . '.' . $fileExtension;
-                $targetPath = $uploadDir . $fileName;
+        // Validasi tanggal kejadian
+        $dateError = validateLostFoundDate($data['date_occurred']);
+        if ($dateError) {
+            $message = $dateError;
+            $messageType = 'error';
+        } else {
+            // Handle image upload
+            $imagePath = null;
+            if (isset($_FILES['lf_image']) && $_FILES['lf_image']['error'] === UPLOAD_ERR_OK) {
+                $uploadDir = 'uploads/lost-found/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
                 
-                if (move_uploaded_file($_FILES['lf_image']['tmp_name'], $targetPath)) {
-                    $imagePath = $targetPath;
+                $fileExtension = strtolower(pathinfo($_FILES['lf_image']['name'], PATHINFO_EXTENSION));
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+                
+                if (in_array($fileExtension, $allowedExtensions)) {
+                    $fileName = uniqid() . '.' . $fileExtension;
+                    $targetPath = $uploadDir . $fileName;
+                    
+                    if (move_uploaded_file($_FILES['lf_image']['tmp_name'], $targetPath)) {
+                        $imagePath = $targetPath;
+                    }
                 }
             }
-        }
-        
-        $insertQuery = "INSERT INTO lost_found_items (user_id, category_id, title, description, type, location, date_occurred, contact_info, image) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $db->prepare($insertQuery);
-        
-        if ($stmt->execute([$user['id'], $data['category_id'], $data['title'], $data['description'], 
-                           $data['type'], $data['location'], $data['date_occurred'], $user['phone'], $imagePath])) {
-            $message = 'Laporan berhasil ditambahkan!';
-            $messageType = 'success';
-        } else {
-            $message = 'Gagal menambahkan laporan';
-            $messageType = 'error';
+            
+            $insertQuery = "INSERT INTO lost_found_items (user_id, category_id, title, description, type, location, date_occurred, contact_info, image) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $db->prepare($insertQuery);
+            
+            if ($stmt->execute([$user['id'], $data['category_id'], $data['title'], $data['description'], 
+                               $data['type'], $data['location'], $data['date_occurred'], $user['phone'], $imagePath])) {
+                $message = 'Laporan berhasil ditambahkan!';
+                $messageType = 'success';
+            } else {
+                $message = 'Gagal menambahkan laporan';
+                $messageType = 'error';
+            }
         }
     }
 }
@@ -467,46 +519,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_activity'])) {
         'organizer' => $_POST['organizer'] ?? ''
     ];
     
+    // Validasi basic
     if (empty($data['title']) || empty($data['description']) || empty($data['category_id']) || 
         empty($data['event_date']) || empty($data['event_time']) || empty($data['location']) || empty($data['organizer'])) {
         $message = 'Semua field wajib diisi';
         $messageType = 'error';
     } else {
-        // Handle image upload
-        $imagePath = null;
-        if (isset($_FILES['act_image']) && $_FILES['act_image']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = 'uploads/activities/';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
-            }
-            
-            $fileExtension = strtolower(pathinfo($_FILES['act_image']['name'], PATHINFO_EXTENSION));
-            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
-            
-            if (in_array($fileExtension, $allowedExtensions)) {
-                $fileName = uniqid() . '.' . $fileExtension;
-                $targetPath = $uploadDir . $fileName;
+        // Validasi tanggal dan waktu kegiatan
+        $dateError = validateActivityDate($data['event_date'], $data['event_time']);
+        if ($dateError) {
+            $message = $dateError;
+            $messageType = 'error';
+        } else {
+            // Handle image upload
+            $imagePath = null;
+            if (isset($_FILES['act_image']) && $_FILES['act_image']['error'] === UPLOAD_ERR_OK) {
+                $uploadDir = 'uploads/activities/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
                 
-                if (move_uploaded_file($_FILES['act_image']['tmp_name'], $targetPath)) {
-                    $imagePath = $targetPath;
+                $fileExtension = strtolower(pathinfo($_FILES['act_image']['name'], PATHINFO_EXTENSION));
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+                
+                if (in_array($fileExtension, $allowedExtensions)) {
+                    $fileName = uniqid() . '.' . $fileExtension;
+                    $targetPath = $uploadDir . $fileName;
+                    
+                    if (move_uploaded_file($_FILES['act_image']['tmp_name'], $targetPath)) {
+                        $imagePath = $targetPath;
+                    }
                 }
             }
-        }
-        
-        $insertQuery = "INSERT INTO activities (user_id, category_id, title, description, event_date, event_time, location, organizer, contact_info, image) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $db->prepare($insertQuery);
-        
-        if ($stmt->execute([$user['id'], $data['category_id'], $data['title'], $data['description'], 
-                           $data['event_date'], $data['event_time'], $data['location'], $data['organizer'], $user['phone'], $imagePath])) {
-            $message = 'Kegiatan berhasil ditambahkan!';
-            $messageType = 'success';
-        } else {
-            $message = 'Gagal menambahkan kegiatan';
-            $messageType = 'error';
+            
+            $insertQuery = "INSERT INTO activities (user_id, category_id, title, description, event_date, event_time, location, organizer, contact_info, image) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $db->prepare($insertQuery);
+            
+            if ($stmt->execute([$user['id'], $data['category_id'], $data['title'], $data['description'], 
+                               $data['event_date'], $data['event_time'], $data['location'], $data['organizer'], $user['phone'], $imagePath])) {
+                $message = 'Kegiatan berhasil ditambahkan!';
+                $messageType = 'success';
+            } else {
+                $message = 'Gagal menambahkan kegiatan';
+                $messageType = 'error';
+            }
         }
     }
 }
+
 
 // Handle edit profile
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_profile'])) {
@@ -688,4 +749,6 @@ $totalActivities = count($userActivities);
 $resolvedItems = count(array_filter($userLostFound, function($item) {
     return $item['status'] === 'selesai';
 }));
+
+
 ?>

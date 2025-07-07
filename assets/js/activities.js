@@ -404,7 +404,7 @@ function validateForm(form) {
     } else {
       clearFieldError(field)
     }
-  })
+  }) 
 
   // Validasi khusus untuk tanggal kegiatan
   const eventDate = form.querySelector("#event_date")
