@@ -339,20 +339,6 @@
   overflow: hidden;
 }
 
-.activity-date {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--text-dark);
-  padding: 0.5rem;
-  border-radius: var(--border-radius);
-  text-align: center;
-  font-weight: 600;
-  min-width: 60px;
-  z-index: 2;
-}
-
 .profile-item .item-image img {
   width: 100%;
   height: 100%;
@@ -851,4 +837,294 @@
         width: 100%;
         justify-content: center;
     }
+}
+
+/* ================================================
+   UPDATE UNTUK HISTORY ACTIVITIES PROFILE
+   ================================================ */
+
+/* History List - Update untuk tampilan card seperti activities tab */
+.history-list {
+  background: transparent; /* Remove background karena akan menggunakan card layout */
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+
+/* History Grid Layout - sama seperti items-grid */
+.history-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+/* History Item - ubah menjadi card layout seperti profile-item */
+.history-item {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: var(--transition);
+  position: relative;
+  padding: 0; /* Reset padding */
+  border-bottom: none; /* Remove border */
+  display: block; /* Change from flex */
+}
+
+.history-item:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover);
+  background: var(--white); /* Keep white background on hover */
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+/* History Icon - pindahkan ke dalam gambar seperti activity-date */
+.history-icon {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 50px;
+  height: 50px;
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  background: rgba(255, 255, 255, 0.95);
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.history-icon.lost-found {
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+}
+
+.history-icon.activity {
+  color: var(--secondary-color);
+  border: 2px solid var(--secondary-color);
+}
+
+/* History Image - tambahkan untuk konsistensi dengan activities */
+.history-item .item-image {
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-size: 3rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.history-item .item-image.lost-found {
+  background: linear-gradient(135deg, var(--primary-color), #2980b9);
+}
+
+.history-item .item-image.activity {
+  background: linear-gradient(135deg, var(--secondary-color), #16a085);
+}
+
+.history-item .item-image i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+/* History Date Badge - seperti activity-date */
+.history-date {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--text-dark);
+  padding: 0.5rem;
+  border-radius: var(--border-radius);
+  text-align: center;
+  font-weight: 600;
+  min-width: 60px;
+  z-index: 2;
+  font-size: 0.8rem;
+}
+
+.history-date .day {
+  display: block;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.history-date .month {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  margin-top: 0.2rem;
+  opacity: 0.8;
+}
+
+/* History Content - sama seperti item-content */
+.history-content {
+  padding: 1.5rem;
+  flex: none; /* Remove flex property */
+}
+
+/* History Category - tambahkan untuk konsistensi */
+.history-category {
+  display: inline-block;
+  background: rgba(75, 195, 255, 0.1);
+  color: var(--primary-color);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  text-transform: capitalize;
+}
+
+.history-category.activity {
+  background: rgba(149, 232, 222, 0.1);
+  color: var(--secondary-color);
+}
+
+/* History Title - update styling */
+.history-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+/* History Meta - tambahkan untuk informasi tambahan */
+.history-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.history-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.history-meta-item i {
+  color: var(--primary-color);
+  width: 16px;
+}
+
+/* History Description - update styling */
+.history-description {
+  color: var(--text-light);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+/* History Time - pindahkan ke meta section */
+.history-time {
+  color: var(--text-light);
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.history-time i {
+  color: var(--primary-color);
+  width: 16px;
+}
+
+/* Status Badge untuk Lost & Found history */
+.history-status {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+.history-status.kehilangan {
+  background: rgba(231, 76, 60, 0.9);
+  color: var(--white);
+}
+
+.history-status.penemuan {
+  background: rgba(46, 204, 113, 0.9);
+  color: var(--white);
+}
+
+.history-status.terbuka {
+  background: rgba(255, 152, 0, 0.9);
+  color: var(--white);
+}
+
+.history-status.selesai {
+  background: rgba(76, 175, 80, 0.9);
+  color: var(--white);
+}
+
+/* Responsive Updates untuk History */
+@media (max-width: 768px) {
+  .history-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+  
+  .history-item .item-image {
+    height: 180px;
+  }
+  
+  .history-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  
+  .history-date {
+    padding: 0.4rem;
+    min-width: 50px;
+  }
+  
+  .history-date .day {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .history-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .history-item .item-image {
+    height: 160px;
+  }
+  
+  .history-content {
+    padding: 1rem;
+  }
+  
+  .history-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 0.9rem;
+  }
 }

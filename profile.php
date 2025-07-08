@@ -198,10 +198,6 @@ require_once 'includes/data/profile_data.php';
                                     <?php else: ?>
                                         <i class="fas fa-calendar-alt"></i>
                                     <?php endif; ?>
-                                    <div class="activity-date">
-                                            <span class="day"><?= date('d', strtotime($activity['event_date'])) ?></span>
-                                            <span class="month"><?= date('M', strtotime($activity['event_date'])) ?></span>
-                                    </div>
                                 </div>
                                 <div class="item-content">
                                     <div class="item-category">
@@ -260,9 +256,10 @@ require_once 'includes/data/profile_data.php';
                     <p><strong>Tindakan ini tidak dapat dibatalkan!</strong></p>
                 </div>
                 
-                <form id="delete-form" method="POST" style="display: none;">
-                    <input type="hidden" id="delete-item-id" name="item_id" value="">
-                    <input type="hidden" id="delete-action-type" name="" value="1">
+                <form id="delete-form" action="profile.php" method="POST">
+                    <input type="hidden" name="item_id" id="delete-item-id">
+                    <input type="hidden" name="item_type" id="delete-item-type">
+                    <input type="hidden" name="delete_item" value="1"> 
                 </form>
                 
                 <div class="form-actions">
