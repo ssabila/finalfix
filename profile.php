@@ -786,5 +786,61 @@ require_once 'includes/data/profile_data.php';
             });
         </script>
     <?php endif; ?>
+
+    <?php
+        // Handle PHP messages untuk JavaScript
+        $message = '';
+        $messageType = '';
+
+        if (isset($_GET['edited_activity']) && $_GET['edited_activity'] == '1') {
+            if (isset($_SESSION['success_message'])) {
+                $message = $_SESSION['success_message'];
+                $messageType = 'success';
+                unset($_SESSION['success_message']);
+            }
+        }
+
+        if (isset($_GET['deleted_activity']) && $_GET['deleted_activity'] == '1') {
+            if (isset($_SESSION['success_message'])) {
+                $message = $_SESSION['success_message'];
+                $messageType = 'success';
+                unset($_SESSION['success_message']);
+            }
+        }
+
+        if (isset($_GET['edited_lf']) && $_GET['edited_lf'] == '1') {
+            if (isset($_SESSION['success_message'])) {
+                $message = $_SESSION['success_message'];
+                $messageType = 'success';
+                unset($_SESSION['success_message']);
+            }
+        }
+
+        if (isset($_GET['deleted_lf']) && $_GET['deleted_lf'] == '1') {
+            if (isset($_SESSION['success_message'])) {
+                $message = $_SESSION['success_message'];
+                $messageType = 'success';
+                unset($_SESSION['success_message']);
+            }
+        }
+        ?>
+
+        <!-- Include fixed JavaScript -->
+        <script src="assets/js/profile.js"></script>
+
+        <!-- Handle messages dari PHP -->
+        <?php if (!empty($message)): ?>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                if (typeof showCustomNotification === 'function') {
+                    showCustomNotification('<?= addslashes($message) ?>', '<?= $messageType ?>');
+                } else {
+                    alert('<?= addslashes($message) ?>');
+                }
+            }, 500);
+        });
+        </script>
+    <?php endif; ?>
 </body>
 </html>

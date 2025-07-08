@@ -196,25 +196,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_activity'])) {
 // Improved delete handling with better error checking and logging
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
-    // Handle delete lost & found item
-    if (isset($_POST['delete_lost_found'])) {
+    // Handle Delete Lost & Found
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_lost_found'])) {
         $itemId = intval($_POST['item_id'] ?? 0);
         
         if ($itemId > 0) {
             try {
-                // Check if item belongs to current user
+                // Check if lost & found belongs to current user
                 $checkQuery = "SELECT * FROM lost_found_items WHERE id = ? AND user_id = ?";
                 $checkStmt = $db->prepare($checkQuery);
                 $checkStmt->execute([$itemId, $user['id']]);
-                $item = $checkStmt->fetch();
+                $lostFound = $checkStmt->fetch();
                 
-                if ($item) {
+                if ($lostFound) {
                     // Begin transaction
                     $db->beginTransaction();
                     
                     // Delete image file if exists
-                    if (!empty($item['image']) && file_exists($item['image'])) {
-                        unlink($item['image']);
+                    if (!empty($lostFound['image']) && file_exists($lostFound['image'])) {
+                        unlink($lostFound['image']);
                     }
                     
                     // Delete from database
@@ -223,8 +223,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     if ($deleteStmt->execute([$itemId, $user['id']])) {
                         $db->commit();
-                        $_SESSION['success_message'] = "Laporan '{$item['title']}' berhasil dihapus!";
-                        header('Location: profile.php?deleted_lf=1');
+                        $_SESSION['success_message'] = "Laporan '{$lostFound['title']}' berhasil dihapus!";
+                        header('Location: profile.php?deleted_lf=1&tab=lost-found');
                         exit;
                     } else {
                         $db->rollback();
@@ -239,7 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($db->inTransaction()) {
                     $db->rollback();
                 }
-                error_log("Error deleting lost-found item: " . $e->getMessage());
+                error_log("Error deleting lost & found: " . $e->getMessage());
                 $message = 'Terjadi kesalahan saat menghapus laporan: ' . $e->getMessage();
                 $messageType = 'error';
             }
@@ -304,13 +304,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Handle success messages from redirects
-if (isset($_GET['deleted_lf']) && $_GET['deleted_lf'] == '1') {
+if (isset($_GET['edited_activity']) && $_GET['edited_activity'] == '1') {
     if (isset($_SESSION['success_message'])) {
         $message = $_SESSION['success_message'];
         $messageType = 'success';
         unset($_SESSION['success_message']);
     } else {
-        $message = 'Laporan berhasil dihapus!';
+        $message = 'Kegiatan berhasil diperbarui!';
         $messageType = 'success';
     }
 }
@@ -322,6 +322,28 @@ if (isset($_GET['deleted_activity']) && $_GET['deleted_activity'] == '1') {
         unset($_SESSION['success_message']);
     } else {
         $message = 'Kegiatan berhasil dihapus!';
+        $messageType = 'success';
+    }
+}
+
+if (isset($_GET['edited_lf']) && $_GET['edited_lf'] == '1') {
+    if (isset($_SESSION['success_message'])) {
+        $message = $_SESSION['success_message'];
+        $messageType = 'success';
+        unset($_SESSION['success_message']);
+    } else {
+        $message = 'Laporan berhasil diperbarui!';
+        $messageType = 'success';
+    }
+}
+
+if (isset($_GET['deleted_lf']) && $_GET['deleted_lf'] == '1') {
+    if (isset($_SESSION['success_message'])) {
+        $message = $_SESSION['success_message'];
+        $messageType = 'success';
+        unset($_SESSION['success_message']);
+    } else {
+        $message = 'Laporan berhasil dihapus!';
         $messageType = 'success';
     }
 }
@@ -507,64 +529,131 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_lost_found'])) {
     }
 }
 
-// Handle Activity form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_activity'])) {
-    $data = [
-        'title' => $_POST['title'] ?? '',
-        'description' => $_POST['description'] ?? '',
-        'category_id' => $_POST['category_id'] ?? '',
-        'event_date' => $_POST['event_date'] ?? '',
-        'event_time' => $_POST['event_time'] ?? '',
-        'location' => $_POST['location'] ?? '',
-        'organizer' => $_POST['organizer'] ?? ''
-    ];
+
+// Handle Edit Activity
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_activity'])) {
+    $itemId = intval($_POST['item_id'] ?? 0);
     
-    // Validasi basic
-    if (empty($data['title']) || empty($data['description']) || empty($data['category_id']) || 
-        empty($data['event_date']) || empty($data['event_time']) || empty($data['location']) || empty($data['organizer'])) {
-        $message = 'Semua field wajib diisi';
-        $messageType = 'error';
-    } else {
-        // Validasi tanggal dan waktu kegiatan
-        $dateError = validateActivityDate($data['event_date'], $data['event_time']);
-        if ($dateError) {
-            $message = $dateError;
-            $messageType = 'error';
-        } else {
-            // Handle image upload
-            $imagePath = null;
-            if (isset($_FILES['act_image']) && $_FILES['act_image']['error'] === UPLOAD_ERR_OK) {
-                $uploadDir = 'uploads/activities/';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0755, true);
-                }
+    if ($itemId > 0) {
+        try {
+            // Check if activity belongs to current user
+            $checkQuery = "SELECT * FROM activities WHERE id = ? AND user_id = ?";
+            $checkStmt = $db->prepare($checkQuery);
+            $checkStmt->execute([$itemId, $user['id']]);
+            $activity = $checkStmt->fetch();
+            
+            if ($activity) {
+                // Validate required fields
+                $required_fields = ['title', 'description', 'category_id', 'event_date', 'event_time', 'location', 'organizer'];
+                $missing_fields = [];
                 
-                $fileExtension = strtolower(pathinfo($_FILES['act_image']['name'], PATHINFO_EXTENSION));
-                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
-                
-                if (in_array($fileExtension, $allowedExtensions)) {
-                    $fileName = uniqid() . '.' . $fileExtension;
-                    $targetPath = $uploadDir . $fileName;
-                    
-                    if (move_uploaded_file($_FILES['act_image']['tmp_name'], $targetPath)) {
-                        $imagePath = $targetPath;
+                foreach ($required_fields as $field) {
+                    if (empty($_POST[$field])) {
+                        $missing_fields[] = $field;
                     }
                 }
-            }
-            
-            $insertQuery = "INSERT INTO activities (user_id, category_id, title, description, event_date, event_time, location, organizer, contact_info, image) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            $stmt = $db->prepare($insertQuery);
-            
-            if ($stmt->execute([$user['id'], $data['category_id'], $data['title'], $data['description'], 
-                               $data['event_date'], $data['event_time'], $data['location'], $data['organizer'], $user['phone'], $imagePath])) {
-                $message = 'Kegiatan berhasil ditambahkan!';
-                $messageType = 'success';
+                
+                if (!empty($missing_fields)) {
+                    $message = 'Field yang diperlukan: ' . implode(', ', $missing_fields);
+                    $messageType = 'error';
+                } else {
+                    // Prepare data for update
+                    $data = [
+                        'title' => trim($_POST['title']),
+                        'description' => trim($_POST['description']),
+                        'category_id' => intval($_POST['category_id']),
+                        'event_date' => $_POST['event_date'],
+                        'event_time' => $_POST['event_time'],
+                        'location' => trim($_POST['location']),
+                        'organizer' => trim($_POST['organizer'])
+                    ];
+                    
+                    // Validate date is not in the past
+                    $eventDateTime = new DateTime($data['event_date'] . ' ' . $data['event_time']);
+                    $now = new DateTime();
+                    
+                    if ($eventDateTime < $now) {
+                        $message = 'Tanggal dan waktu kegiatan tidak boleh di masa lalu';
+                        $messageType = 'error';
+                    } else {
+                        // Handle image upload if provided
+                        $imagePath = $activity['image']; // Keep existing image by default
+                        
+                        if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                            $uploadDir = 'uploads/activities/';
+                            if (!is_dir($uploadDir)) {
+                                mkdir($uploadDir, 0755, true);
+                            }
+                            
+                            $fileExtension = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+                            $allowedTypes = ['jpg', 'jpeg', 'png', 'gif'];
+                            
+                            if (in_array($fileExtension, $allowedTypes)) {
+                                // Delete old image if exists
+                                if (!empty($activity['image']) && file_exists($activity['image'])) {
+                                    unlink($activity['image']);
+                                }
+                                
+                                $fileName = 'activity_' . $itemId . '_' . time() . '.' . $fileExtension;
+                                $targetPath = $uploadDir . $fileName;
+                                
+                                if (move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
+                                    $imagePath = $targetPath;
+                                } else {
+                                    $message = 'Gagal mengupload gambar';
+                                    $messageType = 'error';
+                                }
+                            } else {
+                                $message = 'Format file tidak didukung. Gunakan JPG, PNG, atau GIF';
+                                $messageType = 'error';
+                            }
+                        }
+                        
+                        if (!isset($message)) {
+                            // Begin transaction
+                            $db->beginTransaction();
+                            
+                            // Update database
+                            $updateQuery = "UPDATE activities SET 
+                                            title = ?, description = ?, category_id = ?, 
+                                            event_date = ?, event_time = ?, location = ?, 
+                                            organizer = ?, image = ?, updated_at = NOW()
+                                            WHERE id = ? AND user_id = ?";
+                            
+                            $updateStmt = $db->prepare($updateQuery);
+                            
+                            if ($updateStmt->execute([
+                                $data['title'], $data['description'], $data['category_id'],
+                                $data['event_date'], $data['event_time'], $data['location'],
+                                $data['organizer'], $imagePath, $itemId, $user['id']
+                            ])) {
+                                $db->commit();
+                                $_SESSION['success_message'] = "Kegiatan '{$data['title']}' berhasil diperbarui!";
+                                header('Location: profile.php?edited_lf=1&tab=lost-found');
+                                exit;
+                            } else {
+                                $db->rollback();
+                                $message = 'Gagal memperbarui laporan';
+                                $messageType = 'error';
+                            }
+                        }
+                    }
+                }
             } else {
-                $message = 'Gagal menambahkan kegiatan';
+                $message = 'Laporan tidak ditemukan atau Anda tidak memiliki akses';
                 $messageType = 'error';
             }
+        } catch (Exception $e) {
+            if ($db->inTransaction()) {
+                $db->rollback();
+            }
+            error_log("Error updating lost & found: " . $e->getMessage());
+            $message = 'Terjadi kesalahan saat memperbarui laporan: ' . $e->getMessage();
+            $messageType = 'error';
         }
+    } else {
+        $message = 'ID laporan tidak valid';
+        $messageType = 'error';
     }
 }
 
