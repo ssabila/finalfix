@@ -273,8 +273,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function handleAddActivity(e) {
-    // Remove e.preventDefault() to allow natural form submission to PHP
-    // Let the form submit naturally to PHP handler
     return true
   }
 
@@ -311,8 +309,6 @@ function setupExistingCards() {
   // Setup click events untuk activity cards yang sudah di-render oleh PHP
   const activityCards = document.querySelectorAll(".activity-item")
   activityCards.forEach((card) => {
-    // Event sudah ditambahkan via onclick di HTML, jadi kita tidak perlu menambahkan lagi
-    // Tapi kita bisa menambahkan hover effects atau hal lain jika diperlukan
     card.addEventListener("mouseenter", function () {
       this.style.transform = "translateY(-5px)"
     })

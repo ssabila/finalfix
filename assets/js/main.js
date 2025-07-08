@@ -122,9 +122,7 @@ window.addEventListener('load', () => {
     const preloader = document.querySelector('.preloader');
 
     if (preloader) {
-        // Tetapkan waktu minimum agar preloader terlihat (dalam milidetik)
-        // Ini memastikan animasi sempat terlihat meskipun halaman memuat dengan cepat.
-        const minimumDisplayTime = 1000; // 1.5 detik
+        const minimumDisplayTime = 1000; // 1 detik
 
         setTimeout(() => {
             // Menambahkan kelas 'hidden' untuk memicu transisi fade-out
@@ -256,13 +254,9 @@ function clearFieldError(e) {
     }
 }
 
-
-
-
 // event listener setelah dom siap
 document.addEventListener("DOMContentLoaded", () => {
     
-    // --- Definisi Fungsi Lokal ---
     function setupNavigation() {
         const hamburger = document.getElementById("hamburger");
         const navMenu = document.getElementById("nav-menu");
@@ -319,14 +313,10 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
     }
-
-    // --- Eksekusi Kode ---
     
-    // 1. Jalankan fungsi setup
     setupNavigation();
     setupGlobalEventListeners();
 
-    // 2. Setup Intersection Observer untuk animasi scroll
     const animatedElements = document.querySelectorAll(".animate-on-scroll");
     if (animatedElements.length > 0) {
         const observer = new IntersectionObserver((entries) => {
@@ -345,7 +335,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
     
-    // 3. Tambahkan style untuk animasi notifikasi
     const style = document.createElement("style");
     style.textContent = `
         @keyframes slideInRight {
@@ -355,4 +344,3 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
     document.head.appendChild(style);
 });
-

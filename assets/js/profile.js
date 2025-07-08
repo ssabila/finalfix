@@ -1,4 +1,3 @@
-// assets/js/profile.js - SIMPLE FIX VERSION
 document.addEventListener("DOMContentLoaded", () => {
   init();
 });
@@ -49,7 +48,6 @@ function setupTabs() {
   const tabBtns = document.querySelectorAll(".tab-btn");
   const tabContents = document.querySelectorAll(".tab-content");
 
-  // Check URL parameter untuk set active tab setelah redirect
   const urlParams = new URLSearchParams(window.location.search);
   const activeTabFromUrl = urlParams.get('tab');
   
@@ -181,9 +179,6 @@ function editItem(id, type) {
   }
 }
 
-// ===========================================
-// FIXED DELETE ACTIVITY FUNCTION
-// ===========================================
 function deleteItem(id, type, title) {
   const modal = document.getElementById('delete-modal');
   if (!modal) {
@@ -229,9 +224,6 @@ function deleteItem(id, type, title) {
   openModal('delete-modal');
 }
 
-// ===========================================
-// DELETE CONFIRMATION FUNCTION
-// ===========================================
 function confirmDelete() {
   const form = document.getElementById('delete-form');
   if (form) {
@@ -256,9 +248,6 @@ function confirmDelete() {
   }
 }
 
-// ===========================================
-// MODAL FUNCTIONS
-// ===========================================
 function openModal(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
@@ -297,9 +286,6 @@ function closeModals() {
   document.querySelectorAll(".modal.active").forEach(modal => closeModal(modal.id));
 }
 
-// ===========================================
-// VALIDATION FUNCTIONS
-// ===========================================
 function validateForm(form) {
   const requiredFields = form.querySelectorAll("[required]");
   let isValid = true;
@@ -368,9 +354,6 @@ function clearFieldError(field) {
   }
 }
 
-// ===========================================
-// DATE VALIDATION SETUP
-// ===========================================
 function setupDateValidations() {
   const today = new Date().toISOString().split('T')[0];
 
@@ -413,9 +396,6 @@ function validateLostFoundDate() {
   }
 }
 
-// ===========================================
-// IMAGE PREVIEW FUNCTIONS
-// ===========================================
 function previewImage(input, previewContainerId) {
   const preview = document.getElementById(previewContainerId);
   if (!preview) return;
@@ -461,9 +441,6 @@ function removeImage(inputId, previewId) {
   if (preview) preview.style.display = "none";
 }
 
-// ===========================================
-// NOTIFICATION FUNCTION
-// ===========================================
 function showCustomNotification(message, type = 'info') {
   // Remove existing notifications
   const existingNotifications = document.querySelectorAll('.custom-notification');
@@ -500,9 +477,6 @@ function showCustomNotification(message, type = 'info') {
   }, 100);
 }
 
-// ===========================================
-// AVATAR FUNCTIONALITY (SIMPLIFIED)
-// ===========================================
 function initAvatarUpload() {
   const changeAvatarBtn = document.querySelector('.change-avatar-btn');
   if (changeAvatarBtn) {

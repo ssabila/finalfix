@@ -824,8 +824,7 @@ require_once 'includes/data/profile_data.php';
             }
         }
         ?>
-
-        <!-- Include fixed JavaScript -->
+        
         <script src="assets/js/profile.js"></script>
 
         <!-- Handle messages dari PHP -->

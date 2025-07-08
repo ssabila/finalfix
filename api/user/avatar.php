@@ -1,190 +1,135 @@
 <?php
+// Konfigurasi Header & CORS
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Content-Type: application/json');
 
+// Handle pre-flight request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
+// Memuat file dependensi
 require_once '../config/database.php';
-require_once '../includes/auth.php';
-
-// Start session for authentication
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
+require_once '../utils/auth.php'; // Seharusnya '../utils/auth.php'
 
 try {
+    // Otentikasi pengguna
     $auth = new Auth();
-    $user = $auth->getCurrentUser();
+    $user = $auth->requireAuth(); // Menggunakan requireAuth untuk memastikan pengguna login
     
-    // Check authentication
-    if (!$user) {
-        http_response_code(401);
-        echo json_encode(['error' => 'Authentication required']);
-        exit;
-    }
-    
+    // Koneksi ke database
     $database = new Database();
     $db = $database->getConnection();
     
+    // Handle POST (unggah avatar)
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        // Handle avatar upload
+        // Validasi file unggahan
         if (!isset($_FILES['avatar']) || $_FILES['avatar']['error'] !== UPLOAD_ERR_OK) {
-            http_response_code(400);
-            echo json_encode(['error' => 'No file uploaded or upload error']);
-            exit;
+            sendJsonResponse(['error' => 'No file uploaded or upload error'], 400);
         }
         
         $file = $_FILES['avatar'];
         
-        // Validate file type
-        $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-        $fileType = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        // Validasi tipe file
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/gif'];
         $mimeType = mime_content_type($file['tmp_name']);
-        
-        if (!in_array($fileType, ['jpg', 'jpeg', 'png', 'gif']) || 
-            !in_array($mimeType, ['image/jpeg', 'image/png', 'image/gif'])) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Invalid file type. Only JPG, PNG, and GIF are allowed.']);
-            exit;
+        if (!in_array($mimeType, $allowedMimes)) {
+            sendJsonResponse(['error' => 'Invalid file type. Only JPG, PNG, and GIF are allowed.'], 400);
         }
         
-        // Validate file size (5MB max)
+        // Validasi ukuran file (maks 5MB)
         if ($file['size'] > 5 * 1024 * 1024) {
-            http_response_code(400);
-            echo json_encode(['error' => 'File size too large. Maximum 5MB allowed.']);
-            exit;
+            sendJsonResponse(['error' => 'File size too large. Maximum 5MB allowed.'], 400);
         }
         
-        // Create upload directory
+        // Buat direktori unggahan jika belum ada
         $uploadDir = '../../uploads/avatars/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
         
-        // Generate unique filename
+        // Buat nama file yang unik
+        $fileType = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         $fileName = $user['id'] . '_' . time() . '.' . $fileType;
         $targetPath = $uploadDir . $fileName;
+        $avatarPathForDb = 'uploads/avatars/' . $fileName;
         
-        // PERBAIKAN: Simpan path relatif dari root aplikasi
-        $avatarPath = 'uploads/avatars/' . $fileName;
-        
-        // Get current avatar to delete later
+        // Ambil path avatar saat ini untuk dihapus nanti
         $currentAvatarQuery = "SELECT avatar FROM users WHERE id = ?";
         $currentAvatarStmt = $db->prepare($currentAvatarQuery);
         $currentAvatarStmt->execute([$user['id']]);
         $currentAvatar = $currentAvatarStmt->fetchColumn();
         
-        // Resize and save image
+        // Ubah ukuran dan simpan gambar
         if (resizeAndSaveImage($file['tmp_name'], $targetPath, $mimeType)) {
-            // PERBAIKAN: Update database dengan path lengkap
+            // Update path avatar di database
             $updateQuery = "UPDATE users SET avatar = ? WHERE id = ?";
             $updateStmt = $db->prepare($updateQuery);
             
-            if ($updateStmt->execute([$avatarPath, $user['id']])) {
-                // Delete old avatar if exists
-                if ($currentAvatar) {
-                    // PERBAIKAN: Handle path lengkap atau nama file
-                    $oldAvatarPath = '';
-                    if (strpos($currentAvatar, 'uploads/') === 0) {
-                        // Sudah path lengkap
-                        $oldAvatarPath = '../../' . $currentAvatar;
-                    } else {
-                        // Masih nama file saja
-                        $oldAvatarPath = $uploadDir . $currentAvatar;
-                    }
-                    
-                    if (file_exists($oldAvatarPath)) {
-                        unlink($oldAvatarPath);
-                    }
+            if ($updateStmt->execute([$avatarPathForDb, $user['id']])) {
+                // Hapus file avatar lama jika ada
+                if ($currentAvatar && file_exists('../../' . $currentAvatar)) {
+                    unlink('../../' . $currentAvatar);
                 }
                 
-                // PERBAIKAN: Update session dengan path lengkap
-                if (isset($_SESSION['user_data'])) {
-                    $_SESSION['user_data']['avatar'] = $avatarPath;
-                }
-                
-                echo json_encode([
+                // Kirim respons sukses
+                sendJsonResponse([
                     'success' => true,
                     'message' => 'Avatar uploaded successfully',
-                    'avatar_url' => $avatarPath
+                    'avatar_url' => $avatarPathForDb
                 ]);
             } else {
-                // Delete uploaded file if database update fails
+                // Hapus file yang baru diunggah jika update DB gagal
                 if (file_exists($targetPath)) {
                     unlink($targetPath);
                 }
-                http_response_code(500);
-                echo json_encode(['error' => 'Failed to update database']);
+                sendJsonResponse(['error' => 'Failed to update database'], 500);
             }
         } else {
-            http_response_code(500);
-            echo json_encode(['error' => 'Failed to process image']);
+            sendJsonResponse(['error' => 'Failed to process image'], 500);
         }
         
+    // Handle DELETE (hapus avatar)
     } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
-        // Handle avatar removal
+        // Ambil path avatar saat ini
         $currentAvatarQuery = "SELECT avatar FROM users WHERE id = ?";
         $currentAvatarStmt = $db->prepare($currentAvatarQuery);
         $currentAvatarStmt->execute([$user['id']]);
         $currentAvatar = $currentAvatarStmt->fetchColumn();
         
-        // Update database
+        // Update database, set avatar ke NULL
         $updateQuery = "UPDATE users SET avatar = NULL WHERE id = ?";
         $updateStmt = $db->prepare($updateQuery);
         
         if ($updateStmt->execute([$user['id']])) {
-            // Delete avatar file if exists
-            if ($currentAvatar) {
-                // PERBAIKAN: Handle path lengkap atau nama file
-                $avatarPath = '';
-                if (strpos($currentAvatar, 'uploads/') === 0) {
-                    // Sudah path lengkap
-                    $avatarPath = '../../' . $currentAvatar;
-                } else {
-                    // Masih nama file saja
-                    $avatarPath = '../../uploads/avatars/' . $currentAvatar;
-                }
-                
-                if (file_exists($avatarPath)) {
-                    unlink($avatarPath);
-                }
+            // Hapus file avatar lama jika ada
+            if ($currentAvatar && file_exists('../../' . $currentAvatar)) {
+                unlink('../../' . $currentAvatar);
             }
             
-            // PERBAIKAN: Update session
-            if (isset($_SESSION['user_data'])) {
-                unset($_SESSION['user_data']['avatar']);
-            }
-            
-            echo json_encode([
-                'success' => true,
-                'message' => 'Avatar removed successfully'
-            ]);
+            // Kirim respons sukses
+            sendJsonResponse(['success' => true, 'message' => 'Avatar removed successfully']);
         } else {
-            http_response_code(500);
-            echo json_encode(['error' => 'Failed to remove avatar']);
+            sendJsonResponse(['error' => 'Failed to remove avatar'], 500);
         }
         
     } else {
-        http_response_code(405);
-        echo json_encode(['error' => 'Method not allowed']);
+        // Handle metode lain
+        sendJsonResponse(['error' => 'Method not allowed'], 405);
     }
     
 } catch (Exception $e) {
+    // Handle error
     error_log("Avatar API error: " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['error' => 'Internal server error']);
+    sendJsonResponse(['error' => 'Internal server error: ' . $e->getMessage()], 500);
 }
 
-/**
- * Resize and save image as JPEG with proper dimensions
- */
-function resizeAndSaveImage($sourcePath, $targetPath, $mimeType) {
+// Fungsi untuk mengubah ukuran dan menyimpan gambar
+function resizeAndSaveImage($sourcePath, $targetPath, $mimeType, $newSize = 300) {
     try {
-        // Create image resource based on type
+        // Buat resource gambar berdasarkan tipe mime
         switch ($mimeType) {
             case 'image/jpeg':
                 $source = imagecreatefromjpeg($sourcePath);
@@ -198,51 +143,44 @@ function resizeAndSaveImage($sourcePath, $targetPath, $mimeType) {
             default:
                 return false;
         }
+        if (!$source) return false;
         
-        if (!$source) {
-            return false;
-        }
-        
-        // Get original dimensions
+        // Dapatkan dimensi asli
         $originalWidth = imagesx($source);
         $originalHeight = imagesy($source);
-        
-        // Calculate new dimensions (square, 300x300)
-        $newSize = 300;
         $size = min($originalWidth, $originalHeight);
         
-        // Calculate crop coordinates for center crop
+        // Hitung koordinat untuk pemotongan tengah (center crop)
         $cropX = ($originalWidth - $size) / 2;
         $cropY = ($originalHeight - $size) / 2;
         
-        // Create new image
+        // Buat gambar baru
         $resized = imagecreatetruecolor($newSize, $newSize);
         
-        // Preserve transparency for PNG and GIF
+        // Jaga transparansi untuk PNG dan GIF
         if ($mimeType === 'image/png' || $mimeType === 'image/gif') {
             imagealphablending($resized, false);
             imagesavealpha($resized, true);
-            $transparent = imagecolorallocatealpha($resized, 255, 255, 255, 127);
-            imagefill($resized, 0, 0, $transparent);
         }
         
-        // Resize and crop image
+        // Ubah ukuran dan potong gambar
         imagecopyresampled(
             $resized, $source,
-            0, 0, $cropX, $cropY,
+            0, 0, (int)$cropX, (int)$cropY,
             $newSize, $newSize, $size, $size
         );
         
-        // Save as JPEG with 85% quality
+        // Simpan gambar baru sebagai JPEG dengan kualitas 85%
         $result = imagejpeg($resized, $targetPath, 85);
         
-        // Clean up memory
+        // Bersihkan memori
         imagedestroy($source);
         imagedestroy($resized);
         
         return $result;
         
     } catch (Exception $e) {
+        // Handle error saat proses gambar
         error_log("Image resize error: " . $e->getMessage());
         return false;
     }

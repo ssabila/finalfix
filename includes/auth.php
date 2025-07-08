@@ -26,7 +26,6 @@ class Auth {
                 'email' => $user['email'],
                 'phone' => $user['phone'],
                 'role' => $user['role'],
-                // PERBAIKAN: Simpan avatar dengan path lengkap
                 'avatar' => $user['avatar']
             ];
             return true;
@@ -73,8 +72,7 @@ class Auth {
     public function isLoggedIn() {
         return isset($_SESSION['user_id']);
     }
-    
-    // PERBAIKAN: getCurrentUser() - Selalu ambil data terbaru dari database
+
     public function getCurrentUser() {
         if (!isset($_SESSION['user_id'])) {
             return null;
@@ -154,7 +152,6 @@ class Auth {
         }
     }
     
-    // PERBAIKAN: Fungsi helper untuk mendapatkan URL avatar
     public function getAvatarUrl($user) {
         if (empty($user['avatar'])) {
             return 'assets/images/default-avatar.png';

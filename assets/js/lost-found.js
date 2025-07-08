@@ -151,7 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Staggered animation
       const itemCards = lostFoundContainer.querySelectorAll(".lost-found-item");
       itemCards.forEach((card, index) => {
-          card.style.animationDelay = `${index * 80}ms`; // Stagger the animation
+          card.style.animationDelay = `${index * 80}ms`;
       });
       
       // Add event listeners to new cards
@@ -314,7 +314,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function setupCardEvents(card) {
     // Add click event untuk detail
     card.addEventListener("click", function (e) {
-      // Jangan trigger jika klik button action atau contact
       if (!e.target.closest(".action-btn") && !e.target.closest(".contact-btn")) {
         const itemId = this.dataset.id
         if (itemId) {
@@ -366,9 +365,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function handleAddItem(e) {
-    // Remove e.preventDefault() to allow natural form submission to PHP
-    // Let the form submit naturally to PHP handler
-    // The PHP code will handle the form submission and image processing
     return true
   }
 
@@ -414,14 +410,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getCurrentUser() {
-    // Mock function - replace with your actual user detection
     return { id: 1 }
   }
 
   // Global functions for PHP integration
   window.editItem = async (id, type) => {
     console.log("Edit item:", id)
-    // Implement edit functionality
   }
 
   window.deleteItem = async (id, type) => {
@@ -429,7 +423,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return
     }
     console.log("Delete item:", id)
-    // Implement delete functionality
   }
 
   window.openModal = (modalId) => {

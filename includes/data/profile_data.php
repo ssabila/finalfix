@@ -392,7 +392,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_avatar'])) {
                 $fileName = 'avatar_' . $user['id'] . '_' . time() . '.' . $fileExtension;
                 $targetPath = $uploadDir . $fileName;
                 
-                // PERBAIKAN: Simpan path lengkap ke database
                 $avatarPath = $uploadDir . $fileName;
                 
                 if (move_uploaded_file($_FILES['avatar']['tmp_name'], $targetPath)) {
@@ -402,7 +401,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_avatar'])) {
                         $stmt = $db->prepare($updateQuery);
                         
                         if ($stmt->execute([$avatarPath, $user['id']])) {
-                            // PERBAIKAN: Update session data dengan path lengkap
                             $_SESSION['user_data']['avatar'] = $avatarPath;
                             
                             // Redirect untuk menghindari resubmission dan alert berulang

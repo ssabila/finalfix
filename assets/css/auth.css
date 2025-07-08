@@ -1,4 +1,4 @@
-/* Auth Container - Compact Design */
+/* Auth Container   Design */
 .auth-container {
   min-height: 100vh;
   display: flex;
@@ -52,9 +52,7 @@
   animation-delay: 4s;
 }
 
-/* Remove decorative elements to keep it simple */
-
-/* Compact Auth Card */
+/*   Auth Card */
 .auth-card {
   background: var(--white);
   border-radius: 24px;
@@ -68,7 +66,7 @@
   backdrop-filter: blur(10px);
 }
 
-/* Compact Header */
+/*   Header */
 .auth-header {
   text-align: center;
   margin-bottom: 1.5rem;
@@ -92,7 +90,7 @@
   margin: 0;
 }
 
-/* Compact Form */
+/*   Form */
 .auth-form {
   margin-bottom: 1rem;
 }
@@ -111,7 +109,7 @@
   font-size: 0.9rem;
 }
 
-/* Compact Input Group */
+/*   Input Group */
 .input-group {
   position: relative;
   display: flex;
@@ -152,7 +150,7 @@
   color: var(--primary-color);
 }
 
-/* Compact Button */
+/*   Button */
 .btn-primary {
   width: 90%;
   padding: 0.875rem 1.5rem;
@@ -182,7 +180,7 @@
   transform: translateY(0);
 }
 
-/* Compact Form Options */
+/*   Form Options */
 .form-options {
   display: flex;
   justify-content: space-between;
@@ -239,7 +237,7 @@
   text-decoration: underline;
 }
 
-/* Compact Toggle Password */
+/*   Toggle Password */
 .toggle-password {
   position: absolute;
   right: 1rem;
@@ -276,7 +274,7 @@
   pointer-events: none;
 }
 
-/* Compact Footer */
+/*   Footer */
 .auth-footer {
   text-align: center;
 }
@@ -314,7 +312,6 @@
   color: var(--primary-color);
 }
 
-/* Register Page Specific - Compact Grid */
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -326,7 +323,7 @@
   margin-bottom: 0;
 }
 
-/* Alerts - Compact */
+/* Alerts   */
 .alert {
   padding: 0.75rem 1rem;
   border-radius: 8px;

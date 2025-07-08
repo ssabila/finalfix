@@ -1,21 +1,24 @@
 <?php
+// Konfigurasi Header & CORS
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
 header('Access-Control-Allow-Headers: Content-Type');
 
+// Memuat file dependensi
 require_once '../../config/database.php';
 
 try {
+    // Koneksi ke database
     $database = new Database();
     $db = $database->getConnection();
 
-    // Get search parameters
+    // Ambil parameter pencarian dari URL
     $search = isset($_GET['search']) ? trim($_GET['search']) : '';
     $category = isset($_GET['category']) ? trim($_GET['category']) : '';
     $type = isset($_GET['type']) ? trim($_GET['type']) : '';
 
-    // Build WHERE conditions
+    // Bangun kondisi WHERE secara dinamis
     $whereConditions = ['u.is_active = 1'];
     $params = [];
 
@@ -30,14 +33,14 @@ try {
         $params[] = (int)$category;
     }
 
-    if (!empty($type) && in_array($type, ['kehilangan', 'penemuan'])) {
+    if (!empty($type) && in_array($type, ['hilang', 'ditemukan'])) {
         $whereConditions[] = 'lf.type = ?';
         $params[] = $type;
     }
 
     $whereClause = implode(' AND ', $whereConditions);
 
-    // Execute query
+    // Eksekusi query pencarian
     $query = "SELECT lf.*, u.first_name, u.last_name, u.phone as user_phone, c.name as category_name,
               CONCAT(u.first_name, ' ', u.last_name) as user_name
               FROM lost_found_items lf
@@ -50,10 +53,11 @@ try {
     $stmt->execute($params);
     $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Return JSON response
+    // Kembalikan hasil dalam format JSON
     echo json_encode($items);
 
 } catch (Exception $e) {
+    // Handle error
     http_response_code(500);
     echo json_encode([
         'error' => 'Database error: ' . $e->getMessage()

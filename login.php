@@ -23,9 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Periksa apakah pengguna adalah admin
             if (isset($user['role']) && $user['role'] === 'admin') {
-                redirect('admin.php'); // <-- ARAHKAN ADMIN KE admin.php
+                redirect('admin.php'); 
             } else {
-                redirect('profile.php'); // <-- ARAHKAN PENGGUNA BIASA KE profile.php
+                redirect('profile.php'); 
             }
         } else {
             $error = 'Email/NIM atau password salah';
