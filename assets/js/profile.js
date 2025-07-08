@@ -88,9 +88,7 @@ function setupTabs() {
   });
 }
 
-// ===========================================
-// FIXED EDIT ACTIVITY FUNCTION
-// ===========================================
+// edit functionality
 function editItem(id, type) {
   const itemCard = document.querySelector(`[data-id="${id}"][data-type="${type}"]`);
   if (!itemCard) {
@@ -117,6 +115,12 @@ function editItem(id, type) {
       return;
     }
 
+    const form = modal.querySelector('form');
+    if (form) {
+      form.action = 'profile.php';
+      form.method = 'POST';
+    }
+    
     // Populate common fields
     const itemIdInput = modal.querySelector('input[name="item_id"]');
     const titleInput = modal.querySelector('input[name="title"]');

@@ -543,117 +543,90 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_activity'])) {
             $activity = $checkStmt->fetch();
             
             if ($activity) {
+                $data = [
+                    'title' => trim($_POST['title'] ?? ''),
+                    'description' => trim($_POST['description'] ?? ''),
+                    'category_id' => intval($_POST['category_id'] ?? 0),
+                    'event_date' => $_POST['event_date'] ?? '',
+                    'event_time' => $_POST['event_time'] ?? '',
+                    'location' => trim($_POST['location'] ?? ''),
+                    'organizer' => trim($_POST['organizer'] ?? '')
+                ];
+                
                 // Validate required fields
-                $required_fields = ['title', 'description', 'category_id', 'event_date', 'event_time', 'location', 'organizer'];
+                $required_fields = ['title', 'description', 'event_date', 'event_time', 'location', 'organizer'];
                 $missing_fields = [];
                 
                 foreach ($required_fields as $field) {
-                    if (empty($_POST[$field])) {
+                    if (empty($data[$field])) {
                         $missing_fields[] = $field;
                     }
                 }
                 
+                if ($data['category_id'] <= 0) {
+                    $missing_fields[] = 'category_id';
+                }
+                
                 if (!empty($missing_fields)) {
-                    $message = 'Field yang diperlukan: ' . implode(', ', $missing_fields);
-                    $messageType = 'error';
+                    $_SESSION['error_message'] = 'Field yang diperlukan kosong: ' . implode(', ', $missing_fields);
                 } else {
-                    // Prepare data for update
-                    $data = [
-                        'title' => trim($_POST['title']),
-                        'description' => trim($_POST['description']),
-                        'category_id' => intval($_POST['category_id']),
-                        'event_date' => $_POST['event_date'],
-                        'event_time' => $_POST['event_time'],
-                        'location' => trim($_POST['location']),
-                        'organizer' => trim($_POST['organizer'])
-                    ];
+                    // Handle image upload if new image is provided
+                    $imagePath = $activity['image']; // Keep existing image by default
                     
-                    // Validate date is not in the past
-                    $eventDateTime = new DateTime($data['event_date'] . ' ' . $data['event_time']);
-                    $now = new DateTime();
-                    
-                    if ($eventDateTime < $now) {
-                        $message = 'Tanggal dan waktu kegiatan tidak boleh di masa lalu';
-                        $messageType = 'error';
-                    } else {
-                        // Handle image upload if provided
-                        $imagePath = $activity['image']; // Keep existing image by default
-                        
-                        if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                            $uploadDir = 'uploads/activities/';
-                            if (!is_dir($uploadDir)) {
-                                mkdir($uploadDir, 0755, true);
-                            }
-                            
-                            $fileExtension = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
-                            $allowedTypes = ['jpg', 'jpeg', 'png', 'gif'];
-                            
-                            if (in_array($fileExtension, $allowedTypes)) {
-                                // Delete old image if exists
-                                if (!empty($activity['image']) && file_exists($activity['image'])) {
-                                    unlink($activity['image']);
-                                }
-                                
-                                $fileName = 'activity_' . $itemId . '_' . time() . '.' . $fileExtension;
-                                $targetPath = $uploadDir . $fileName;
-                                
-                                if (move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
-                                    $imagePath = $targetPath;
-                                } else {
-                                    $message = 'Gagal mengupload gambar';
-                                    $messageType = 'error';
-                                }
-                            } else {
-                                $message = 'Format file tidak didukung. Gunakan JPG, PNG, atau GIF';
-                                $messageType = 'error';
-                            }
+                    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                        $uploadDir = 'uploads/activities/';
+                        if (!is_dir($uploadDir)) {
+                            mkdir($uploadDir, 0755, true);
                         }
                         
-                        if (!isset($message)) {
-                            // Begin transaction
-                            $db->beginTransaction();
+                        $fileExtension = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+                        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+                        
+                        if (in_array($fileExtension, $allowedExtensions)) {
+                            if (!empty($activity['image']) && file_exists($activity['image'])) {
+                                unlink($activity['image']);
+                            }
                             
-                            // Update database
-                            $updateQuery = "UPDATE activities SET 
-                                            title = ?, description = ?, category_id = ?, 
-                                            event_date = ?, event_time = ?, location = ?, 
-                                            organizer = ?, image = ?, updated_at = NOW()
-                                            WHERE id = ? AND user_id = ?";
+                            $fileName = uniqid() . '.' . $fileExtension;
+                            $targetPath = $uploadDir . $fileName;
                             
-                            $updateStmt = $db->prepare($updateQuery);
-                            
-                            if ($updateStmt->execute([
-                                $data['title'], $data['description'], $data['category_id'],
-                                $data['event_date'], $data['event_time'], $data['location'],
-                                $data['organizer'], $imagePath, $itemId, $user['id']
-                            ])) {
-                                $db->commit();
-                                $_SESSION['success_message'] = "Kegiatan '{$data['title']}' berhasil diperbarui!";
-                                header('Location: profile.php?edited_lf=1&tab=lost-found');
-                                exit;
-                            } else {
-                                $db->rollback();
-                                $message = 'Gagal memperbarui laporan';
-                                $messageType = 'error';
+                            if (move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
+                                $imagePath = $targetPath;
                             }
                         }
                     }
+                    
+                    // Update database
+                    $updateQuery = "UPDATE activities SET 
+                                  title = ?, description = ?, category_id = ?, 
+                                  event_date = ?, event_time = ?, location = ?, 
+                                  organizer = ?, image = ? 
+                                  WHERE id = ? AND user_id = ?";
+                    
+                    $updateStmt = $db->prepare($updateQuery);
+                    $result = $updateStmt->execute([
+                        $data['title'], $data['description'], $data['category_id'],
+                        $data['event_date'], $data['event_time'], $data['location'],
+                        $data['organizer'], $imagePath, $itemId, $user['id']
+                    ]);
+                    
+                    if ($result) {
+                        $_SESSION['success_message'] = "Kegiatan '{$data['title']}' berhasil diperbarui!";
+                        header('Location: profile.php?edited_activity=1&tab=activities');
+                        exit;
+                    } else {
+                        $_SESSION['error_message'] = 'Gagal memperbarui kegiatan ke database';
+                    }
                 }
             } else {
-                $message = 'Laporan tidak ditemukan atau Anda tidak memiliki akses';
-                $messageType = 'error';
+                $_SESSION['error_message'] = 'Kegiatan tidak ditemukan atau Anda tidak memiliki akses';
             }
         } catch (Exception $e) {
-            if ($db->inTransaction()) {
-                $db->rollback();
-            }
-            error_log("Error updating lost & found: " . $e->getMessage());
-            $message = 'Terjadi kesalahan saat memperbarui laporan: ' . $e->getMessage();
-            $messageType = 'error';
+            error_log("Error editing activity: " . $e->getMessage());
+            $_SESSION['error_message'] = 'Terjadi kesalahan sistem: ' . $e->getMessage();
         }
     } else {
-        $message = 'ID laporan tidak valid';
-        $messageType = 'error';
+        $_SESSION['error_message'] = 'ID kegiatan tidak valid';
     }
 }
 
