@@ -6,6 +6,7 @@ html, body {
 .container, .main-container {
   max-width: 100%;
   overflow-x: hidden;
+  overflow: visible;
 }
 
 /* About Hero */
@@ -61,7 +62,7 @@ html, body {
 
 /* About Content */
 .about-content {
-  padding: 4rem 0;
+  padding: 4rem 2rem;
 }
 
 .content-grid {
@@ -69,6 +70,10 @@ html, body {
   grid-template-columns: 1fr 1fr;
   gap: 4rem;
   align-items: center;
+}
+
+.content-text{
+  text-align: justify;
 }
 
 .content-text h2 {

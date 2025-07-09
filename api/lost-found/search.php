@@ -33,7 +33,7 @@ try {
         $params[] = (int)$category;
     }
 
-    if (!empty($type) && in_array($type, ['hilang', 'ditemukan'])) {
+    if (!empty($type) && in_array($type, ['kehilangan', 'penemuan'])) {
         $whereConditions[] = 'lf.type = ?';
         $params[] = $type;
     }

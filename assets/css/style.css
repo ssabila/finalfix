@@ -150,6 +150,8 @@ body {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
+  box-sizing: border-box;
+  overflow: visible;
 }
 
 
@@ -1184,4 +1186,190 @@ select {
 }
 .h-full {
   height: 100%;
+}
+
+/* Enhanced Card Hover Effects dengan Border Primary Color */
+
+/* Update untuk Lost & Found Items */
+.lost-found-item {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: var(--transition);
+  cursor: pointer;
+  position: relative;
+  border: 2px solid transparent; /* Tambahkan border transparan default */
+}
+
+.lost-found-item:hover {
+  transform: translateY(-10px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--primary-color); /* Border berubah ke primary color saat hover */
+}
+
+/* Update untuk Activity Items */
+.activity-item {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: var(--transition);
+  cursor: pointer;
+  position: relative;
+  border: 2px solid transparent; /* Tambahkan border transparan default */
+}
+
+.activity-item:hover {
+  transform: translateY(-10px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--primary-color); /* Border berubah ke primary color saat hover */
+}
+
+/* Update untuk Card General */
+.card {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: var(--transition);
+  border: 2px solid transparent; /* Tambahkan border transparan default */
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--primary-color); /* Border berubah ke primary color saat hover */
+}
+
+/* Post Cards (untuk homepage) */
+.post-card {
+  flex: 0 0 calc(33.333% - 1rem);
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: var(--transition);
+  cursor: pointer;
+  position: relative;
+  border: 2px solid transparent; /* Border transparan default */
+}
+
+.post-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--primary-color); /* Border primary saat hover */
+}
+
+/* Feature Items (untuk about page) */
+.feature-item {
+  background: var(--white);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+  border: 2px solid transparent; /* Border transparan default */
+}
+
+.feature-item:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--primary-color); /* Border primary saat hover */
+}
+
+/* Mission Cards */
+.mission-card {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid var(--border-color); /* Border default dengan warna border */
+}
+
+.mission-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  border-color: var(--primary-color); /* Border primary saat hover */
+}
+
+/* Profile Items (jika ada) */
+.profile-item {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: var(--transition);
+  cursor: pointer;
+  position: relative;
+  border: 2px solid transparent;
+}
+
+.profile-item:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--primary-color);
+}
+
+/* Enhanced hover effect untuk semua cards dengan glow effect */
+.lost-found-item:hover,
+.activity-item:hover,
+.card:hover,
+.post-card:hover,
+.feature-item:hover,
+.profile-item:hover {
+  /* Tambahkan efek glow subtle */
+  box-shadow: var(--shadow-hover), 0 0 0 4px rgba(75, 195, 255, 0.15);
+}
+
+/* Tambahan: Hover effect untuk card content */
+.lost-found-item:hover .item-title,
+.activity-item:hover .activity-title,
+.post-card:hover .post-title {
+  color: var(--primary-color);
+  transition: color 0.3s ease;
+}
+
+/* Hover effect untuk icon dalam card */
+.lost-found-item:hover .item-image i,
+.activity-item:hover .activity-image i,
+.post-card:hover .post-image i {
+  transform: scale(1.1);
+  transition: transform 0.3s ease;
+}
+
+/* Smooth border radius transition untuk cards */
+.lost-found-item,
+.activity-item,
+.card,
+.post-card,
+.feature-item,
+.profile-item {
+  background-clip: padding-box;
+}
+
+@media (max-width: 768px) {
+  .lost-found-item:hover,
+  .activity-item:hover,
+  .card:hover,
+  .post-card:hover,
+  .feature-item:hover,
+  .profile-item:hover {
+    /* Kurangi transform pada mobile */
+    transform: translateY(-5px);
+  }
+}
+
+@media (max-width: 480px) {
+  .lost-found-item:hover,
+  .activity-item:hover,
+  .card:hover,
+  .post-card:hover,
+  .feature-item:hover,
+  .profile-item:hover {
+    /* Minimal transform pada mobile kecil */
+    transform: translateY(-2px);
+  }
 }

@@ -12,12 +12,16 @@
   transition: var(--transition);
   cursor: pointer;
   position: relative;
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 .activity-item:hover {
   transform: translateY(-10px);
   box-shadow: var(--shadow-hover);
-  border: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  transition: color 0.3s ease;
 }
 
 .activity-image {
@@ -363,21 +367,6 @@
   min-height: 60vh;
 }
 
-.activity-item {
-  background: var(--white);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  transition: var(--transition);
-  cursor: pointer;
-  position: relative;
-}
-
-.activity-item:hover {
-  transform: translateY(-10px);
-  box-shadow: var(--shadow-hover);
-  border-color: var(--primary-color);
-}
 
 .activity-image {
   width: 100%;
