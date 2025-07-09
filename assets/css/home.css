@@ -696,6 +696,80 @@
 }
 
 @media (max-width: 480px) {
+  .card-float {
+  position: absolute;
+  background: var(--white);
+  padding: 1.5rem 2rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  animation: float 4s ease-in-out infinite;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  min-width: 80px;
+}
+
+.card-float:hover {
+  transform: translateY(-10px) scale(1.05);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.card-float i {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.card-float span {
+  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 0.95rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Card 1 - Top Left (Search/Lost & Found) */
+.card-1 {
+  top: 15%;
+  left: 5%;
+  animation-delay: 0s;
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(255, 255, 255, 0.9));
+  border-left: 4px solid #e74c3c;
+}
+
+.card-1 i {
+  color: #e74c3c;
+}
+
+/* Card 2 - Top Right (Activities/Events) */
+.card-2 {
+  top: 25%;
+  right: 10%;
+  animation-delay: 1.5s;
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(255, 255, 255, 0.9));
+  border-left: 4px solid #3498db;
+}
+
+.card-2 i {
+  color: #3498db;
+}
+
+/* Card 3 - Bottom Center (Community) */
+.card-3 {
+  bottom: 20%;
+  left: 50%;
+  animation-delay: 1.5s;
+  background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(255, 255, 255, 0.9));
+  border-left: 4px solid #2ecc71;
+}
+
+.card-3 i {
+  color: #2ecc71;
+}
+
   .hero-content h1 {
     font-size: 2rem;
   }

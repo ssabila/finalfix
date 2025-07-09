@@ -144,8 +144,9 @@
 }
 
 .lost-found-item:hover {
-  transform: translateY(-5px);
+  transform: translateY(-10px);
   box-shadow: var(--shadow-hover);
+  border-color: var(--primary-color);
 }
  
 .item-image {

@@ -15,8 +15,9 @@
 }
 
 .activity-item:hover {
-  transform: translateY(-5px);
+  transform: translateY(-10px);
   box-shadow: var(--shadow-hover);
+  border: var(--primary-color);
 }
 
 .activity-image {
@@ -373,8 +374,9 @@
 }
 
 .activity-item:hover {
-  transform: translateY(-5px);
+  transform: translateY(-10px);
   box-shadow: var(--shadow-hover);
+  border-color: var(--primary-color);
 }
 
 .activity-image {

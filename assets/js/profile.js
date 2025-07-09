@@ -13,7 +13,7 @@ function setupEventListeners() {
   // Edit profile button
   const editProfileBtn = document.querySelector(".edit-profile-btn");
   if (editProfileBtn) {
-    editProfileBtn.addEventListener("click", () => openModal('edit-profile-modal'));
+    editProfileBtn.addEventListener("click", () => openEditProfileModal());
   }
 
   // Modal controls
@@ -42,6 +42,23 @@ function setupEventListeners() {
       }
     });
   });
+  
+  // Inisialisasi event listener untuk toggle password di modal edit profil
+  document.querySelectorAll('#edit-profile-modal .toggle-password').forEach(button => {
+    button.addEventListener('click', function() {
+        const passwordInput = this.parentElement.querySelector('input');
+        const icon = this.querySelector('i');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    });
+  });
 }
 
 function setupTabs() {
@@ -50,32 +67,25 @@ function setupTabs() {
 
   const urlParams = new URLSearchParams(window.location.search);
   const activeTabFromUrl = urlParams.get('tab');
-  
-  // Set initial active tab
+
   if (activeTabFromUrl) {
-    // Set tab berdasarkan URL parameter
     tabBtns.forEach((b) => b.classList.remove("active"));
     tabContents.forEach((content) => content.classList.remove("active"));
-    
+
     const targetBtn = document.querySelector(`[data-tab="${activeTabFromUrl}"]`);
     const targetContent = document.getElementById(`${activeTabFromUrl}-tab`);
-    
+
     if (targetBtn && targetContent) {
       targetBtn.classList.add("active");
       targetContent.classList.add("active");
     }
   }
 
-  // Setup click handlers untuk tab buttons
   tabBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       const targetTab = btn.dataset.tab;
-
-      // Update active tab button
       tabBtns.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
-
-      // Update active tab content
       tabContents.forEach((content) => {
         content.classList.remove("active");
         if (content.id === `${targetTab}-tab`) {
@@ -86,7 +96,6 @@ function setupTabs() {
   });
 }
 
-// edit functionality
 function editItem(id, type) {
   const itemCard = document.querySelector(`[data-id="${id}"][data-type="${type}"]`);
   if (!itemCard) {
@@ -94,53 +103,41 @@ function editItem(id, type) {
     showCustomNotification('Item tidak ditemukan!', 'error');
     return;
   }
-
-  const dataScript = itemCard.querySelector('.item-edit-data'); 
+  const dataScript = itemCard.querySelector('.item-edit-data');
   if (!dataScript) {
     console.error('Data script item tidak ditemukan!');
     showCustomNotification('Data item tidak ditemukan!', 'error');
     return;
   }
-
   try {
     const itemData = JSON.parse(dataScript.textContent);
     const modalId = `edit-${type}-modal`;
     const modal = document.getElementById(modalId);
-    
     if (!modal) {
       console.error(`Modal dengan ID ${modalId} tidak ditemukan!`);
       showCustomNotification('Modal edit tidak ditemukan!', 'error');
       return;
     }
-
     const form = modal.querySelector('form');
     if (form) {
       form.action = 'profile.php';
       form.method = 'POST';
     }
-    
-    // Populate common fields
     const itemIdInput = modal.querySelector('input[name="item_id"]');
     const titleInput = modal.querySelector('input[name="title"]');
     const categorySelect = modal.querySelector('select[name="category_id"]');
     const descriptionTextarea = modal.querySelector('textarea[name="description"]');
     const locationInput = modal.querySelector('input[name="location"]');
-
     if (itemIdInput) itemIdInput.value = itemData.id;
     if (titleInput) titleInput.value = itemData.title;
     if (categorySelect) categorySelect.value = itemData.category_id;
     if (descriptionTextarea) descriptionTextarea.value = itemData.description;
     if (locationInput) locationInput.value = itemData.location;
-
-    // Populate specific fields based on type
     if (type === 'lost-found') {
       const typeSelect = modal.querySelector('select[name="type"]');
       const dateOccurredInput = modal.querySelector('input[name="date_occurred"]');
-      
       if (typeSelect) typeSelect.value = itemData.type;
       if (dateOccurredInput) dateOccurredInput.value = itemData.date_occurred;
-      
-      // Show current image if exists
       const currentImageContainer = modal.querySelector('#edit-lf-current-image');
       const currentImage = modal.querySelector('#edit-lf-current-img');
       if (itemData.image && currentImage && currentImageContainer) {
@@ -149,17 +146,13 @@ function editItem(id, type) {
       } else if (currentImageContainer) {
         currentImageContainer.style.display = 'none';
       }
-      
     } else if (type === 'activity') {
       const eventDateInput = modal.querySelector('input[name="event_date"]');
       const eventTimeInput = modal.querySelector('input[name="event_time"]');
       const organizerInput = modal.querySelector('input[name="organizer"]');
-      
       if (eventDateInput) eventDateInput.value = itemData.event_date;
       if (eventTimeInput) eventTimeInput.value = itemData.event_time;
       if (organizerInput) organizerInput.value = itemData.organizer;
-      
-      // Show current image if exists
       const currentImageContainer = modal.querySelector('#edit-act-current-image');
       const currentImage = modal.querySelector('#edit-act-current-img');
       if (itemData.image && currentImage && currentImageContainer) {
@@ -169,10 +162,7 @@ function editItem(id, type) {
         currentImageContainer.style.display = 'none';
       }
     }
-
-    // Open the modal
     openModal(modalId);
-    
   } catch (error) {
     console.error('Error parsing item data:', error);
     showCustomNotification('Gagal memuat data item!', 'error');
@@ -186,61 +176,44 @@ function deleteItem(id, type, title) {
     showCustomNotification('Modal konfirmasi tidak ditemukan!', 'error');
     return;
   }
-
-  // Set the title in the confirmation dialog
   const titleElement = modal.querySelector('#delete-item-title');
   if (titleElement) {
     titleElement.textContent = title || 'item ini';
   }
-
-  // Set the item ID
   const itemIdInput = modal.querySelector('#delete-item-id');
   if (itemIdInput) {
     itemIdInput.value = id;
   }
-
-  // Set the correct hidden input based on type
   const form = modal.querySelector('#delete-form');
   if (form) {
-    // Remove any existing action inputs
     const existingActionInputs = form.querySelectorAll('input[name^="delete_"]');
     existingActionInputs.forEach(input => input.remove());
-
-    // Add the correct action input based on type
     const actionInput = document.createElement('input');
     actionInput.type = 'hidden';
     actionInput.value = '1';
-    
     if (type === 'lost-found') {
       actionInput.name = 'delete_lost_found';
     } else if (type === 'activity') {
       actionInput.name = 'delete_activity';
     }
-    
     form.appendChild(actionInput);
   }
-
-  // Open the delete confirmation modal
   openModal('delete-modal');
 }
 
 function confirmDelete() {
   const form = document.getElementById('delete-form');
   if (form) {
-    // Show loading state on button
-    const deleteButton = document.querySelector('.btn-danger');
+    const deleteButton = document.querySelector('#delete-modal .btn-danger');
     if (deleteButton) {
       const originalText = deleteButton.innerHTML;
       deleteButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menghapus...';
       deleteButton.disabled = true;
-      
-      // Restore button after a delay (in case of error)
       setTimeout(() => {
         deleteButton.innerHTML = originalText;
         deleteButton.disabled = false;
       }, 5000);
     }
-    
     form.submit();
   } else {
     console.error('Delete form not found!');
@@ -253,8 +226,6 @@ function openModal(modalId) {
   if (modal) {
     modal.classList.add("active");
     document.body.style.overflow = 'hidden';
-    
-    // Reset avatar form when opening avatar modal
     if (modalId === 'avatar-modal') {
       resetAvatarForm();
     }
@@ -265,25 +236,16 @@ function closeModal(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
     modal.classList.remove("active");
-    
-    // Reset form when closing
     const form = modal.querySelector("form");
     if (form) {
       form.reset();
-      // Reset any previews
       form.querySelectorAll(".image-preview").forEach(p => p.style.display = "none");
       form.querySelectorAll(".current-image").forEach(c => c.style.display = "none");
     }
   }
-  
-  // Check if any other modal is active before re-enabling scroll
   if (document.querySelectorAll(".modal.active").length === 0) {
     document.body.style.overflow = '';
   }
-}
-
-function closeModals() {
-  document.querySelectorAll(".modal.active").forEach(modal => closeModal(modal.id));
 }
 
 function validateForm(form) {
@@ -299,13 +261,11 @@ function validateForm(form) {
     }
   });
 
-  // Validate activity date (must be in future)
   const eventDate = form.querySelector('input[name="event_date"]');
   if (eventDate && eventDate.value) {
     const selectedDate = new Date(eventDate.value);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     if (selectedDate < today) {
       showCustomNotification("Tanggal kegiatan tidak boleh di masa lalu!", "warning");
       eventDate.focus();
@@ -313,13 +273,11 @@ function validateForm(form) {
     }
   }
 
-  // Validate lost & found date (must be in past or today)
   const dateOccurred = form.querySelector('input[name="date_occurred"]');
   if (dateOccurred && dateOccurred.value) {
     const selectedDate = new Date(dateOccurred.value);
     const today = new Date();
     today.setHours(23, 59, 59, 999);
-
     if (selectedDate > today) {
       showCustomNotification("Tanggal kejadian tidak boleh di masa depan!", "warning");
       dateOccurred.focus();
@@ -332,12 +290,10 @@ function validateForm(form) {
 
 function showFieldError(field, message) {
   clearFieldError(field);
-  
   field.classList.add('error');
   const errorDiv = document.createElement('div');
   errorDiv.className = 'field-error';
   errorDiv.textContent = message;
-  
   if (field.parentNode.classList.contains('input-group')) {
     field.parentNode.parentNode.appendChild(errorDiv);
   } else {
@@ -347,8 +303,8 @@ function showFieldError(field, message) {
 
 function clearFieldError(field) {
   field.classList.remove('error');
-  const existingError = field.parentNode.querySelector('.field-error') || 
-                       field.parentNode.parentNode.querySelector('.field-error');
+  const existingError = field.parentNode.querySelector('.field-error') ||
+    field.parentNode.parentNode.querySelector('.field-error');
   if (existingError) {
     existingError.remove();
   }
@@ -356,15 +312,11 @@ function clearFieldError(field) {
 
 function setupDateValidations() {
   const today = new Date().toISOString().split('T')[0];
-
-  // Set constraint for activity date inputs (min: today)
   const activityDateInputs = document.querySelectorAll('input[name="event_date"]');
   activityDateInputs.forEach(input => {
     input.setAttribute('min', today);
     input.addEventListener('change', validateActivityDate);
   });
-
-  // Set constraint for lost & found date inputs (max: today)
   const lostFoundDateInputs = document.querySelectorAll('input[name="date_occurred"]');
   lostFoundDateInputs.forEach(input => {
     input.setAttribute('max', today);
@@ -376,7 +328,6 @@ function validateActivityDate() {
   const selectedDate = new Date(this.value);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
   if (selectedDate < today) {
     showCustomNotification("Tanggal kegiatan tidak boleh di masa lalu!", "warning");
     this.value = '';
@@ -388,7 +339,6 @@ function validateLostFoundDate() {
   const selectedDate = new Date(this.value);
   const today = new Date();
   today.setHours(23, 59, 59, 999);
-
   if (selectedDate > today) {
     showCustomNotification("Tanggal kejadian tidak boleh di masa depan!", "warning");
     this.value = '';
@@ -399,31 +349,24 @@ function validateLostFoundDate() {
 function previewImage(input, previewContainerId) {
   const preview = document.getElementById(previewContainerId);
   if (!preview) return;
-  
   const previewImg = preview.querySelector("img");
   if (!previewImg) return;
-
   if (input.files && input.files[0]) {
     const file = input.files[0];
     const validTypes = ["image/jpeg", "image/png", "image/gif"];
-    const maxSize = 5 * 1024 * 1024; // 5MB
-
-    // Validate file type and size
+    const maxSize = 5 * 1024 * 1024;
     if (!validTypes.includes(file.type)) {
       showCustomNotification("Hanya file gambar (JPG, PNG, GIF) yang diperbolehkan!", "error");
       input.value = "";
       return;
     }
-
     if (file.size > maxSize) {
       showCustomNotification("Ukuran file terlalu besar! Maksimal 5MB.", "error");
       input.value = "";
       return;
     }
-
-    // Create preview
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
       previewImg.src = e.target.result;
       preview.style.display = "block";
     };
@@ -436,17 +379,13 @@ function previewImage(input, previewContainerId) {
 function removeImage(inputId, previewId) {
   const input = document.getElementById(inputId);
   const preview = document.getElementById(previewId);
-  
   if (input) input.value = "";
   if (preview) preview.style.display = "none";
 }
 
 function showCustomNotification(message, type = 'info') {
-  // Remove existing notifications
   const existingNotifications = document.querySelectorAll('.custom-notification');
   existingNotifications.forEach(notification => notification.remove());
-
-  // Create notification element
   const notification = document.createElement('div');
   notification.className = `custom-notification notification-${type}`;
   notification.innerHTML = `
@@ -455,23 +394,15 @@ function showCustomNotification(message, type = 'info') {
       <button class="notification-close">&times;</button>
     </div>
   `;
-
-  // Add to DOM
   document.body.appendChild(notification);
-
-  // Add event listener for close button
   notification.querySelector('.notification-close').addEventListener('click', () => {
     notification.remove();
   });
-
-  // Auto remove after 5 seconds
   setTimeout(() => {
     if (notification.parentNode) {
       notification.remove();
     }
   }, 5000);
-
-  // Show animation
   setTimeout(() => {
     notification.classList.add('show');
   }, 100);
@@ -480,7 +411,7 @@ function showCustomNotification(message, type = 'info') {
 function initAvatarUpload() {
   const changeAvatarBtn = document.querySelector('.change-avatar-btn');
   if (changeAvatarBtn) {
-    changeAvatarBtn.addEventListener('click', () => openModal('avatar-modal'));
+    changeAvatarBtn.addEventListener('click', () => openAvatarModal());
   }
 }
 
@@ -488,7 +419,75 @@ function resetAvatarForm() {
   const form = document.querySelector('#avatar-modal form');
   if (form) {
     form.reset();
-    const preview = form.querySelector('.image-preview');
-    if (preview) preview.style.display = 'none';
+    const newAvatarPreview = document.getElementById('new-avatar-preview');
+    const noPreviewPlaceholder = document.getElementById('no-preview-placeholder');
+    const saveBtn = document.getElementById('save-avatar-btn');
+
+    if (newAvatarPreview) newAvatarPreview.style.display = 'none';
+    if (noPreviewPlaceholder) noPreviewPlaceholder.style.display = 'block';
+    if (saveBtn) saveBtn.disabled = true;
   }
+}
+
+/**
+ * Menangani pratinjau gambar untuk avatar di modal.
+ * @param {HTMLInputElement} input - Elemen input file.
+ */
+function previewAvatar(input) {
+    const newAvatarPreview = document.getElementById('new-avatar-preview');
+    const noPreviewPlaceholder = document.getElementById('no-preview-placeholder');
+    const newAvatarImg = document.getElementById('new-avatar-img');
+    const saveBtn = document.getElementById('save-avatar-btn');
+
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!allowedTypes.includes(file.type)) {
+            showCustomNotification('Format file tidak valid. Gunakan JPG, PNG, atau GIF.', 'error');
+            input.value = '';
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) { // 5MB
+            showCustomNotification('Ukuran file terlalu besar! Maksimal 5MB.', 'error');
+            input.value = '';
+            return;
+        }
+
+        reader.onload = function(e) {
+            if (newAvatarImg) newAvatarImg.src = e.target.result;
+            if (newAvatarPreview) newAvatarPreview.style.display = 'block';
+            if (noPreviewPlaceholder) noPreviewPlaceholder.style.display = 'none';
+            if (saveBtn) saveBtn.disabled = false;
+        };
+
+        reader.readAsDataURL(file);
+    } else {
+        if (newAvatarPreview) newAvatarPreview.style.display = 'none';
+        if (noPreviewPlaceholder) noPreviewPlaceholder.style.display = 'block';
+        if (saveBtn) saveBtn.disabled = true;
+    }
+}
+
+/**
+ * Membuka modal untuk mengganti avatar.
+ */
+function openAvatarModal() {
+    openModal('avatar-modal');
+}
+
+/**
+ * Membuka modal untuk mengedit profil dan mengisi data pengguna.
+ */
+function openEditProfileModal() {
+    if (typeof userProfileData !== 'undefined') {
+        document.getElementById('edit_first_name').value = userProfileData.first_name;
+        document.getElementById('edit_last_name').value = userProfileData.last_name;
+        document.getElementById('edit_nim').value = userProfileData.nim;
+        document.getElementById('edit_email').value = userProfileData.email;
+        document.getElementById('edit_phone').value = userProfileData.phone;
+    }
+    openModal('edit-profile-modal');
 }

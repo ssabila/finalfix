@@ -1,20 +1,22 @@
 <?php
+// Memuat file konfigurasi database
 require_once '../config/database.php';
 
 class Auth {
     private $db;
     
+    // Konstruktor untuk mendapatkan koneksi database
     public function __construct() {
         $database = new Database();
         $this->db = $database->getConnection();
     }
     
-    // Generate secure session token
+    // Membuat token sesi yang aman secara kriptografis
     public function generateSessionToken() {
         return bin2hex(random_bytes(32));
     }
     
-    // Create user session
+    // Membuat dan menyimpan sesi pengguna baru di database
     public function createSession($userId) {
         $token = $this->generateSessionToken();
         $expiresAt = date('Y-m-d H:i:s', strtotime('+7 days'));
@@ -26,7 +28,7 @@ class Auth {
         return $token;
     }
     
-    // Validate session token
+    // Memvalidasi token sesi dan mengambil data pengguna
     public function validateSession($token) {
         if (!$token) return false;
         
@@ -39,21 +41,21 @@ class Auth {
         return $stmt->fetch();
     }
     
-    // Delete session (logout)
+    // Menghapus sesi pengguna (untuk logout)
     public function deleteSession($token) {
         $query = "DELETE FROM user_sessions WHERE session_token = ?";
         $stmt = $this->db->prepare($query);
         return $stmt->execute([$token]);
     }
     
-    // Clean expired sessions
+    // Membersihkan sesi yang sudah kedaluwarsa dari database
     public function cleanExpiredSessions() {
         $query = "DELETE FROM user_sessions WHERE expires_at < NOW()";
         $stmt = $this->db->prepare($query);
         return $stmt->execute();
     }
     
-    // Get current user from session
+    // Mendapatkan data pengguna yang sedang login berdasarkan sesi
     public function getCurrentUser() {
         $token = $this->getSessionToken();
         if (!$token) return null;
@@ -61,6 +63,7 @@ class Auth {
         $session = $this->validateSession($token);
         if (!$session) return null;
         
+        // Mengembalikan data pengguna yang relevan
         return [
             'id' => $session['user_id'],
             'nim' => $session['nim'],
@@ -72,9 +75,9 @@ class Auth {
         ];
     }
     
-    // Get session token from cookie or header
+    // Mengambil token sesi dari header Authorization atau cookie
     private function getSessionToken() {
-        // Check Authorization header first
+        // Cek header Authorization terlebih dahulu
         $headers = getallheaders();
         if (isset($headers['Authorization'])) {
             $auth = $headers['Authorization'];
@@ -83,11 +86,11 @@ class Auth {
             }
         }
         
-        // Check cookie
+        // Jika tidak ada di header, cek cookie
         return isset($_COOKIE['session_token']) ? $_COOKIE['session_token'] : null;
     }
     
-    // Require authentication
+    // Memastikan pengguna sudah login, jika tidak, hentikan eksekusi
     public function requireAuth() {
         $user = $this->getCurrentUser();
         if (!$user) {
@@ -99,7 +102,9 @@ class Auth {
     }
 }
 
-// Helper functions
+// Fungsi bantuan (Helper functions)
+
+// Mengirim respons dalam format JSON dan menghentikan skrip
 function sendJsonResponse($data, $statusCode = 200) {
     http_response_code($statusCode);
     header('Content-Type: application/json');
@@ -107,11 +112,13 @@ function sendJsonResponse($data, $statusCode = 200) {
     exit;
 }
 
+// Mengambil input JSON dari body permintaan
 function getJsonInput() {
     $input = file_get_contents('php://input');
     return json_decode($input, true);
 }
 
+// Memvalidasi apakah field yang wajib diisi ada dan tidak kosong
 function validateRequired($data, $fields) {
     $missing = [];
     foreach ($fields as $field) {

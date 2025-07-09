@@ -1,25 +1,26 @@
 <?php
+// Memuat file dependensi
 require_once __DIR__ . '/../../config/database.php';
 
+// Inisialisasi otentikasi & database
 $auth = new Auth();
 $user = $auth->getCurrentUser();
 
-// Get recent posts
 $database = new Database();
 $db = $database->getConnection();
 
-// Get recent lost & found items with images
+// Mengambil item hilang & ditemukan terbaru
 $lostFoundQuery = "SELECT lf.*, u.first_name, u.last_name, c.name as category_name
-                    FROM lost_found_items lf
-                    JOIN users u ON lf.user_id = u.id
-                    JOIN categories c ON lf.category_id = c.id
-                    WHERE u.is_active = 1
-                    ORDER BY lf.created_at DESC LIMIT 6";
+                   FROM lost_found_items lf
+                   JOIN users u ON lf.user_id = u.id
+                   JOIN categories c ON lf.category_id = c.id
+                   WHERE u.is_active = 1
+                   ORDER BY lf.created_at DESC LIMIT 6";
 $lostFoundStmt = $db->prepare($lostFoundQuery);
 $lostFoundStmt->execute();
 $lostFoundItems = $lostFoundStmt->fetchAll();
 
-// Get recent activities with images
+// Mengambil kegiatan terbaru
 $activitiesQuery = "SELECT a.*, u.first_name, u.last_name, c.name as category_name
                     FROM activities a
                     JOIN users u ON a.user_id = u.id
@@ -30,9 +31,11 @@ $activitiesStmt = $db->prepare($activitiesQuery);
 $activitiesStmt->execute();
 $activities = $activitiesStmt->fetchAll();
 
-// Function to get appropriate icon based on category
+// Fungsi untuk mendapatkan ikon berdasarkan kategori
 function getItemIcon($categoryName, $type) {
+    // Jika tipenya 'lost_found'
     if ($type === 'lost_found') {
+        // Peta ikon untuk kategori 'lost_found'
         $iconMap = [
             'elektronik' => 'laptop',
             'aksesoris' => 'glasses',
@@ -47,7 +50,8 @@ function getItemIcon($categoryName, $type) {
         ];
         $normalizedCategory = strtolower($categoryName);
         return $iconMap[$normalizedCategory] ?? 'search';
-    } else {
+    } else { // Jika tipenya 'activity'
+        // Ikon default untuk 'activity'
         return 'calendar-alt';
     }
 }

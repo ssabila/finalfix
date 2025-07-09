@@ -1,6 +1,8 @@
 <?php
+// Memuat file dependensi
 require_once __DIR__ . '/../../config/database.php';
 
+// Inisialisasi variabel dan objek
 $auth = new Auth();
 $user = $auth->getCurrentUser();
 $message = '';
@@ -9,12 +11,14 @@ $messageType = '';
 $database = new Database();
 $db = $database->getConnection();
 
-// Handle form submission
+// Menangani pengiriman form (tambah item)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_item'])) {
+    // Cek jika pengguna sudah login
     if (!$auth->isLoggedIn()) {
         $message = 'Anda harus login terlebih dahulu';
         $messageType = 'error';
     } else {
+        // Ambil data dari form
         $data = [
             'title' => trim($_POST['title'] ?? ''),
             'description' => trim($_POST['description'] ?? ''),
@@ -24,12 +28,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_item'])) {
             'date_occurred' => $_POST['date_occurred'] ?? ''
         ];
         
+        // Validasi field wajib diisi
         if (empty($data['title']) || empty($data['description']) || empty($data['type']) || 
             empty($data['category_id']) || empty($data['location']) || empty($data['date_occurred'])) {
             $message = 'Semua field wajib diisi';
             $messageType = 'error';
         } else {
-            // Handle image upload
+            // Menangani unggahan gambar
             $imagePath = null;
             if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
                 $uploadDir = 'uploads/lost-found/';
@@ -57,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_item'])) {
                             $fileName = uniqid() . '.' . $fileExtension;
                             $targetPath = $uploadDir . $fileName;
                             
-                            // Upload file langsung tanpa resize
+                            // Pindahkan file yang diunggah
                             if (move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
                                 $imagePath = $targetPath;
                             } else {
@@ -75,12 +80,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_item'])) {
             // Lanjutkan insert jika tidak ada error
             if (empty($message)) {
                 try {
+                    // Query untuk memasukkan item baru
                     $insertQuery = "INSERT INTO lost_found_items (user_id, category_id, title, description, type, location, date_occurred, contact_info, image) 
                                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     $stmt = $db->prepare($insertQuery);
                     
                     if ($stmt->execute([$user['id'], $data['category_id'], $data['title'], $data['description'], 
-                                       $data['type'], $data['location'], $data['date_occurred'], $user['phone'], $imagePath])) {
+                                        $data['type'], $data['location'], $data['date_occurred'], $user['phone'], $imagePath])) {
                         $message = 'Laporan berhasil ditambahkan!';
                         $messageType = 'success';
                         
@@ -109,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_item'])) {
     }
 }
 
-// Get categories
+// Mengambil daftar kategori untuk filter
 try {
     $categoriesQuery = "SELECT * FROM categories WHERE type = 'lost_found' ORDER BY name ASC";
     $categoriesStmt = $db->prepare($categoriesQuery);
@@ -120,7 +126,8 @@ try {
     error_log("Error fetching categories: " . $e->getMessage());
 }
 
-// Get lost & found items with filters
+// Mengambil daftar item dengan filter
+// Membangun klausa WHERE secara dinamis
 $whereConditions = ['u.is_active = 1'];
 $params = [];
 
@@ -142,14 +149,15 @@ if (isset($_GET['type']) && !empty($_GET['type']) && in_array($_GET['type'], ['k
 
 $whereClause = implode(' AND ', $whereConditions);
 
+// Query utama untuk mengambil data item
 try {
     $itemsQuery = "SELECT lf.*, u.first_name, u.last_name, u.phone as user_phone, c.name as category_name,
-                   CONCAT(u.first_name, ' ', u.last_name) as user_name
-                   FROM lost_found_items lf
-                   JOIN users u ON lf.user_id = u.id
-                   JOIN categories c ON lf.category_id = c.id
-                   WHERE $whereClause
-                   ORDER BY lf.created_at DESC";
+                      CONCAT(u.first_name, ' ', u.last_name) as user_name
+                      FROM lost_found_items lf
+                      JOIN users u ON lf.user_id = u.id
+                      JOIN categories c ON lf.category_id = c.id
+                      WHERE $whereClause
+                      ORDER BY lf.created_at DESC";
 
     $itemsStmt = $db->prepare($itemsQuery);
     $itemsStmt->execute($params);

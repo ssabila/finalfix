@@ -1,15 +1,8 @@
-// Activities page functionality - Complete implementation
+// Jalankan setelah halaman selesai dimuat
 document.addEventListener("DOMContentLoaded", () => {
-  // Setup event listeners untuk cards yang sudah ada dari PHP
   setupExistingCards()
-
-  // Setup modal functionality
   setupModalHandlers()
-
-  // Setup form handlers
   setupFormHandlers()
-
-  // Handle PHP messages
   handlePhpMessages()
 
   // DOM elements
@@ -28,8 +21,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentActivities = []
   const searchTimeout = null
 
-  // Initialize page
+  // Inisialisasi Halaman
   init()
+
 
   function init() {
     // Load initial data
@@ -38,17 +32,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setupEventListeners() {
-    // Live search functionality
+    // Fungsi Live search 
     if (searchInput) {
       searchInput.addEventListener("input", debounce(handleLiveSearch, 300))
     }
 
-    // Live filter functionality
+    // Fungsi Live FIlter
     if (categoryFilter) {
       categoryFilter.addEventListener("change", handleLiveSearch)
     }
 
-    // Prevent form submission
+    // Mencegah form filter melakukan submit
     if (filterForm) {
       filterForm.addEventListener("submit", (e) => {
         e.preventDefault()
@@ -694,7 +688,7 @@ window.shareActivity = (title, description) => {
   }
 }
 
-// Utility functions
+// Fungsi utilitas
 function debounce(func, wait) {
   let timeout
   return function executedFunction(...args) {

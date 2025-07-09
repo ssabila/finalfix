@@ -1,4 +1,3 @@
-// Lost & Found page functionality dengan Live Search dan AJAX
 document.addEventListener("DOMContentLoaded", () => {
   // DOM elements
   const lostFoundContainer = document.querySelector(".grid-container")
@@ -31,12 +30,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setupEventListeners() {
-    // Live search functionality
+    // Fungsionalitas Live search 
     if (searchInput) {
       searchInput.addEventListener("input", debounce(handleLiveSearch, 300))
     }
 
-    // Live filter functionality
+    // Fungsionalitas Live filter 
     if (categoryFilter) {
       categoryFilter.addEventListener("change", handleLiveSearch)
     }
@@ -45,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
       statusFilter.addEventListener("change", handleLiveSearch)
     }
 
-    // Prevent form submission
+    // Mencegah form submission
     if (filterForm) {
       filterForm.addEventListener("submit", (e) => {
         e.preventDefault()
@@ -62,12 +61,12 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.addEventListener("click", closeModals)
     })
 
-    // Form submission
+    // Menangani form tambah
     if (addForm) {
       addForm.addEventListener("submit", handleAddItem)
     }
 
-    // Close modal when clicking outside
+    // Menutup modal ketika klik di luar area konten
     window.addEventListener("click", (e) => {
       if (e.target.classList.contains("modal")) {
         closeModals()
@@ -100,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } else if (data && data.error) {
         showError("Gagal memuat data: " + data.error)
       } else {
-        displayItems([]) // Display empty state
+        displayItems([])
       }
     } catch (error) {
       console.error("Error in live search:", error)
@@ -174,17 +173,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const currentUser = getCurrentUser()
     const isOwner = currentUser && currentUser.id == item.user_id
 
-    // Determine if we have a valid image
+    // Tentukan apakah ada gambar yang valid
     const hasImage = item.image && item.image.trim() !== ""
     const imageClass = hasImage ? "has-image" : ""
 
-    // Clean phone number for WhatsApp
+    // Bersihkan nomor telepon untuk link WhatsApp
     const cleanPhone = item.contact_info ? item.contact_info.replace(/[^0-9]/g, "") : ""
 
-    // Get icon based on category
+    // Tentukan ikon berdasarkan kategori
     const icon = getItemIcon(item.category_name)
 
-    // Escape JSON-unsafe characters
+    // Bersihkan data untuk keamanan (mencegah XSS)
     const escapedTitle = item.title.replace(/["'\\\n\r]/g, (match) => {
       switch (match) {
         case '"':
@@ -413,7 +412,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return { id: 1 }
   }
 
-  // Global functions for PHP integration
+  // Global functions untuk integrasi php
   window.editItem = async (id, type) => {
     console.log("Edit item:", id)
   }
@@ -596,7 +595,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.openModal("detail-modal")
   }
 
-  // Share function
+  // Fungsi untuk share
   window.shareItem = (title, description) => {
     if (navigator.share) {
       navigator.share({
@@ -605,7 +604,7 @@ document.addEventListener("DOMContentLoaded", () => {
         url: window.location.href,
       })
     } else {
-      // Fallback - copy to clipboard
+      // Copy to clipboard
       const text = `${title}\n\n${description}\n\n${window.location.href}`
       navigator.clipboard
         .writeText(text)

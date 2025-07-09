@@ -59,10 +59,6 @@ require_once 'includes/data/profile_data.php';
                     <span class="stat-number"><?= $totalActivities ?></span>
                     <span class="stat-label">Kegiatan</span>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-number"><?= $resolvedItems ?></span>
-                    <span class="stat-label">Terselesaikan</span>
-                </div>
             </div>
         </div>
     </section>
@@ -445,15 +441,19 @@ require_once 'includes/data/profile_data.php';
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <form class="modal-form" method="POST" enctype="multipart/form-data">
+            <form class="modal-form" action="profile.php" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="change_avatar" value="1">
                 
                 <div class="avatar-upload-section">
                     <div class="current-avatar-preview">
-                        <?php if (!empty($user['avatar']) && file_exists('uploads/avatars/' . $user['avatar'])): ?>
-                            <img src="uploads/avatars/<?= htmlspecialchars($user['avatar']) ?>" alt="Current Avatar" id="current-avatar-preview">
+                        <?php 
+                        $avatarUrl = $auth->getAvatarUrl($user);
+                        // Cek apakah file avatar ada
+                        if (!empty($user['avatar']) && file_exists($avatarUrl)): 
+                        ?>
+                            <img src="<?= htmlspecialchars($avatarUrl) ?>" alt="Current Avatar">
                         <?php else: ?>
-                            <div class="no-avatar-placeholder" id="current-avatar-preview">
+                            <div class="no-avatar-placeholder">
                                 <i class="fas fa-user"></i>
                                 <span>Belum ada foto</span>
                             </div>
@@ -469,7 +469,7 @@ require_once 'includes/data/profile_data.php';
                     </div>
                     
                     <div class="new-avatar-preview" id="new-avatar-preview" style="display: none;">
-                        <img id="new-avatar-img" src="" alt="New Avatar Preview">
+                        <img id="new-avatar-img" src="#" alt="New Avatar Preview">
                         <div class="avatar-overlay">
                             <i class="fas fa-check"></i>
                             <span>Foto Baru</span>
@@ -485,7 +485,7 @@ require_once 'includes/data/profile_data.php';
                 <div class="form-group">
                     <label for="avatar">Pilih Foto Profil Baru</label>
                     <input type="file" id="avatar" name="avatar" accept="image/jpeg,image/jpg,image/png,image/gif" onchange="previewAvatar(this)" required>
-                    <small>Format: JPG, PNG, GIF. Maksimal 5MB. Foto akan dipotong menjadi persegi secara otomatis.</small>
+                    <small>Format: JPG, PNG, GIF. Maksimal 5MB.</small>
                 </div>
                 
                 <div class="form-actions">
